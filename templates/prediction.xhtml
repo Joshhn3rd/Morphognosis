@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <title>Plant Prediction</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    />
+
+</head>
+
+
+<body>
+
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+
+<div class="hero">
+
+    <h1>MORPHOGNOSIS</h1>
+
+    <p class="subtitle">
+        PLANT STRUCTURE PREDICTOR
+    </p>
+
+</div>
+
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+
+<nav class="navbar">
+
+    <a href="/">
+        HOME
+    </a>
+
+    <a href="/prediction">
+        PLANT PREDICTION
+    </a>
+
+    <a href="/environment">
+        ENVIRONMENTAL FACTORS
+    </a>
+
+    <a href="/history">
+        PREDICTION HISTORY
+    </a>
+
+</nav>
+
+
+<!-- ============================================================
+     MAIN PREDICTION CONTAINER
+     ============================================================ -->
+
+<div class="prediction-container">
+
+
+<form id="predictionForm">
+
+
+<!-- ============================================================
+     INPUT SECTION
+     ============================================================ -->
+
+<div class="input-grid">
+
+
+    <!-- ========================================================
+         ENVIRONMENTAL FACTORS
+         ======================================================== -->
+
+    <div class="input-card">
+
+        <h3>
+            Environmental Factors
+        </h3>
+
+
+        <label>
+            Sunlight (hours/week)
+        </label>
+
+        <input
+            type="number"
+            name="sunlight"
+            step="0.01"
+            required
+        />
+
+
+        <label>
+            Temperature (°C)
+        </label>
+
+        <input
+            type="number"
+            name="temperature"
+            step="0.01"
+            required
+        />
+
+
+        <label>
+            Water (mL/week)
+        </label>
+
+        <input
+            type="number"
+            name="water"
+            step="0.01"
+            required
+        />
+
+
+        <label>
+            Week
+        </label>
+
+        <input
+            type="number"
+            name="week"
+            min="1"
+            required
+        />
+
+    </div>
+
+
+    <!-- ========================================================
+         PREVIOUS PLANT STRUCTURE
+         ======================================================== -->
+
+    <div class="input-card">
+
+        <h3>
+            Previous Plant Structure
+        </h3>
+
+
+        <label>
+            Previous Height (cm)
+        </label>
+
+        <input
+            type="number"
+            name="prevHeight"
+            step="any"
+            required
+        />
+
+
+        <label>
+            Previous Leaves
+        </label>
+
+        <input
+            type="number"
+            name="prevLeaves"
+            min="0"
+            required
+        />
+
+
+        <label>
+            Previous Branches
+        </label>
+
+        <input
+            type="number"
+            name="prevBranches"
+            min="0"
+            required
+        />
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     PLANT IMAGE
+     ============================================================ -->
+
+<div class="upload-card">
+
+    <h3>
+        Plant Image
+    </h3>
+
+
+    <img
+        id="preview"
+        src="{{ url_for('static', filename='images/preview.jpg') }}"
+        alt="Image Preview"
+    />
+
+
+    <input
+        type="file"
+        id="plantImage"
+        name="plantImage"
+        accept="image/*"
+    />
+
+</div>
+
+
+<!-- ============================================================
+     PREDICT BUTTON
+     ============================================================ -->
+
+<div class="predict-area">
+
+    <button
+        type="submit"
+        class="predict-btn"
+    >
+        PREDICT PLANT STRUCTURE
+    </button>
+
+</div>
+
+
+<!-- ============================================================
+     RESULTS
+     ============================================================ -->
+
+<div class="results-container">
+
+
+    <!-- ========================================================
+         CARD 1
+         PREDICTION RESULTS
+         ======================================================== -->
+
+    <div class="result-card">
+
+        <h3>
+            Prediction Results
+        </h3>
+
+
+        <!-- HEIGHT -->
+
+        <div class="result-item">
+
+            <span class="result-label">
+                Predicted Height
+            </span>
+
+            <span
+                id="predictedHeight"
+                class="result-value"
+            >
+                -
+            </span>
+
+        </div>
+
+
+        <!-- LEAVES -->
+
+        <div class="result-item">
+
+            <span class="result-label">
+                Predicted Leaves
+            </span>
+
+            <span
+                id="predictedLeaves"
+                class="result-value"
+            >
+                -
+            </span>
+
+        </div>
+
+
+        <!-- BRANCHES -->
+
+        <div class="result-item">
+
+            <span class="result-label">
+                Predicted Branches
+            </span>
+
+            <span
+                id="predictedBranches"
+                class="result-value"
+            >
+                -
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================
+         CARD 2
+         FINAL PLANT ANALYSIS
+         ======================================================== -->
+
+    <div class="result-card">
+
+        <h3>
+            Plant Analysis
+        </h3>
+
+
+        <!-- OVERALL GROWTH -->
+
+        <div class="result-item">
+
+            <span class="result-label">
+                Overall Growth
+            </span>
+
+            <span
+                id="cnnGrowth"
+                class="result-value"
+            >
+                -
+            </span>
+
+        </div>
+
+
+        <!-- LEAF DISTRIBUTION -->
+
+        <div class="result-item">
+
+            <span class="result-label">
+                Leaf Distribution
+            </span>
+
+            <span
+                id="cnnLeafDistribution"
+                class="result-value"
+            >
+                -
+            </span>
+
+        </div>
+
+
+        <!-- BRANCH DEVELOPMENT -->
+
+        <div class="result-item">
+
+            <span class="result-label">
+                Branch Development
+            </span>
+
+            <span
+                id="cnnBranchDevelopment"
+                class="result-value"
+            >
+                -
+            </span>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+</form>
+
+</div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+
+<script
+    src="{{ url_for('static', filename='js/script.js') }}">
+</script>
+
+
+</body>
+
+</html>

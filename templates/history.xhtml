@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Prediction History</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="hero">
+
+    <h1>MORPHOGNOSIS</h1>
+
+    <p class="subtitle">
+        PPLANT STRUCTURE PREDICTOR
+    </p>
+
+</div>
+
+
+<nav class="navbar">
+
+    <a href="/">HOME</a>
+
+    <a href="/prediction">PLANT PREDICTION</a>
+
+    <a href="/environment">ENVIRONMENTAL FACTORS</a>
+
+    <a href="/history">PREDICTION HISTORY</a>
+
+</nav>
+
+
+<div class="history-container">
+
+     <h2>Prediction History</h2>
+
+   <table class="history-table" id="historyTable">
+
+    <thead>
+        <tr>
+            <th>Date & Time</th>
+            <th>Sunlight</th>
+            <th>Temperature</th>
+            <th>Water</th>
+            <th>Previous Plant Structure</th>
+            <th>Predicted Plant Structure</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    </tbody>
+
+</table>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

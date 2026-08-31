@@ -1,0 +1,17 @@
+{
+    "overall_growth": {
+        "0": "early",
+        "1": "mid",
+        "2": "late"
+    },
+    "leaf_distribution": {
+        "0": "sparse",
+        "1": "moderate",
+        "2": "dense"
+    },
+    "branch_development": {
+        "0": "none",
+        "1": "developing",
+        "2": "developed"
+    }
+}
