@@ -65,6 +65,7 @@ output_details = interpreter.get_output_details()
 print("TFLite model loaded successfully.")
 print("Input:", input_details)
 print("Outputs:", output_details)
+print("Signatures:", interpreter.get_signature_list())
 
 
 # ============================================================
