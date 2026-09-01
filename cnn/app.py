@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(
 
 
 # ============================================================
-# 2. TFLITE MODEL PATH
+# 2. TFLITE MODEL PATHS
 # ============================================================
 
 TFLITE_MODEL_PATH = os.path.join(
@@ -52,6 +52,7 @@ if not os.path.exists(TFLITE_MODEL_PATH):
         f"TFLite model not found: {TFLITE_MODEL_PATH}"
     )
 
+
 interpreter = Interpreter(
     model_path=TFLITE_MODEL_PATH,
     num_threads=1
@@ -59,13 +60,30 @@ interpreter = Interpreter(
 
 interpreter.allocate_tensors()
 
+
+# Get model information
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
+
+signature_list = interpreter.get_signature_list()
 
 print("TFLite model loaded successfully.")
 print("Input:", input_details)
 print("Outputs:", output_details)
-print("Signatures:", interpreter.get_signature_list())
+print("Signatures:", signature_list)
+
+
+# Make sure expected signature exists
+if "serving_default" not in signature_list:
+    raise RuntimeError(
+        "Expected TFLite signature 'serving_default' was not found."
+    )
+
+
+# Create named signature runner
+signature_runner = interpreter.get_signature_runner(
+    "serving_default"
+)
 
 
 # ============================================================
@@ -77,12 +95,15 @@ if not os.path.exists(CNN_CLASS_PATH):
         f"CNN class mapping not found: {CNN_CLASS_PATH}"
     )
 
+
 with open(
     CNN_CLASS_PATH,
     "r",
     encoding="utf-8"
 ) as file:
+
     cnn_classes = json.load(file)
+
 
 print("CNN class mapping loaded successfully.")
 
@@ -107,26 +128,52 @@ def home():
 def predict_plant_image(image_path):
 
     # --------------------------------------------------------
-    # LOAD + RESIZE IMAGE
+    # LOAD IMAGE
     # --------------------------------------------------------
 
-    image = Image.open(image_path).convert("RGB")
-    image = image.resize((224, 224))
+    image = Image.open(
+        image_path
+    ).convert("RGB")
+
+
+    # --------------------------------------------------------
+    # RESIZE TO MOBILENETV2 INPUT SIZE
+    # --------------------------------------------------------
+
+    image = image.resize(
+        (224, 224)
+    )
+
+
+    # --------------------------------------------------------
+    # CONVERT IMAGE TO NUMPY ARRAY
+    # --------------------------------------------------------
 
     image_array = np.asarray(
         image,
         dtype=np.float32
     )
 
+
     # --------------------------------------------------------
     # MOBILENETV2 PREPROCESSING
-    # Equivalent to preprocess_input()
-    # Converts 0..255 -> -1..1
+    #
+    # Equivalent to:
+    # tensorflow.keras.applications.mobilenet_v2.preprocess_input
+    #
+    # Converts pixel values:
+    # 0..255 -> -1..1
     # --------------------------------------------------------
 
     image_array = (
         image_array / 127.5
     ) - 1.0
+
+
+    # Add batch dimension:
+    # (224, 224, 3)
+    # ->
+    # (1, 224, 224, 3)
 
     image_array = np.expand_dims(
         image_array,
@@ -134,73 +181,40 @@ def predict_plant_image(image_path):
     ).astype(np.float32)
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # RUN TFLITE INFERENCE
-    # --------------------------------------------------------
+    #
+    # Our converted model confirmed this signature:
+    #
+    # input:
+    # input_layer_1
+    #
+    # outputs:
+    # branch_development
+    # leaf_distribution
+    # overall_growth
+    # ========================================================
 
-    interpreter.set_tensor(
-        input_details[0]["index"],
-        image_array
+    outputs = signature_runner(
+        input_layer_1=image_array
     )
 
-    interpreter.invoke()
-
 
     # --------------------------------------------------------
-    # GET ALL THREE OUTPUTS
+    # GET NAMED OUTPUTS
     # --------------------------------------------------------
-
-    outputs = {}
-
-    for detail in output_details:
-
-        output_value = interpreter.get_tensor(
-            detail["index"]
-        )[0]
-
-        output_name = detail["name"].lower()
-
-        if "overall" in output_name:
-            outputs["overall_growth"] = output_value
-
-        elif "leaf" in output_name:
-            outputs["leaf_distribution"] = output_value
-
-        elif "branch" in output_name:
-            outputs["branch_development"] = output_value
-
-
-    # --------------------------------------------------------
-    # FALLBACK FOR OUTPUT ORDER
-    # --------------------------------------------------------
-
-    if len(outputs) != 3:
-
-        raw_outputs = [
-            interpreter.get_tensor(
-                detail["index"]
-            )[0]
-            for detail in output_details
-        ]
-
-        outputs = {
-            "overall_growth": raw_outputs[0],
-            "leaf_distribution": raw_outputs[1],
-            "branch_development": raw_outputs[2]
-        }
-
 
     overall_prediction = outputs[
         "overall_growth"
-    ]
+    ][0]
 
     leaf_prediction = outputs[
         "leaf_distribution"
-    ]
+    ][0]
 
     branch_prediction = outputs[
         "branch_development"
-    ]
+    ][0]
 
 
     # ========================================================
@@ -208,15 +222,21 @@ def predict_plant_image(image_path):
     # ========================================================
 
     overall_index = int(
-        np.argmax(overall_prediction)
+        np.argmax(
+            overall_prediction
+        )
     )
 
     leaf_index = int(
-        np.argmax(leaf_prediction)
+        np.argmax(
+            leaf_prediction
+        )
     )
 
     branch_index = int(
-        np.argmax(branch_prediction)
+        np.argmax(
+            branch_prediction
+        )
     )
 
 
@@ -228,9 +248,11 @@ def predict_plant_image(image_path):
         "overall_growth"
     ][str(overall_index)]
 
+
     cnn_leaf = cnn_classes[
         "leaf_distribution"
     ][str(leaf_index)]
+
 
     cnn_branch = cnn_classes[
         "branch_development"
@@ -238,44 +260,68 @@ def predict_plant_image(image_path):
 
 
     # ========================================================
-    # CONFIDENCE
+    # CONFIDENCE SCORES
     # ========================================================
 
     growth_confidence = float(
-        overall_prediction[overall_index]
+        overall_prediction[
+            overall_index
+        ]
     ) * 100
+
 
     leaf_confidence = float(
-        leaf_prediction[leaf_index]
+        leaf_prediction[
+            leaf_index
+        ]
     ) * 100
 
+
     branch_confidence = float(
-        branch_prediction[branch_index]
+        branch_prediction[
+            branch_index
+        ]
     ) * 100
 
 
     # ========================================================
-    # RESULT
+    # JSON RESULT
     # ========================================================
 
     result = {
-        "overallGrowth": cnn_growth,
-        "overallGrowthConfidence": round(
-            growth_confidence,
-            2
-        ),
-        "leafDistribution": cnn_leaf,
-        "leafDistributionConfidence": round(
-            leaf_confidence,
-            2
-        ),
-        "branchDevelopment": cnn_branch,
-        "branchDevelopmentConfidence": round(
-            branch_confidence,
-            2
-        )
+
+        "overallGrowth":
+            cnn_growth,
+
+        "overallGrowthConfidence":
+            round(
+                growth_confidence,
+                2
+            ),
+
+        "leafDistribution":
+            cnn_leaf,
+
+        "leafDistributionConfidence":
+            round(
+                leaf_confidence,
+                2
+            ),
+
+        "branchDevelopment":
+            cnn_branch,
+
+        "branchDevelopmentConfidence":
+            round(
+                branch_confidence,
+                2
+            )
     }
 
+
+    # ========================================================
+    # SERVER LOG
+    # ========================================================
 
     print("\n============================================")
     print("TFLITE IMAGE ANALYSIS")
@@ -299,6 +345,9 @@ def predict_plant_image(image_path):
         f"({branch_confidence:.2f}%)"
     )
 
+    print("============================================")
+
+
     return result
 
 
@@ -316,29 +365,52 @@ def analyze_image():
     print("TFLITE IMAGE REQUEST")
     print("============================================")
 
+
+    # --------------------------------------------------------
+    # CHECK IMAGE EXISTS
+    # --------------------------------------------------------
+
     if "plantImage" not in request.files:
 
         return jsonify({
-            "error": "No plant image uploaded."
+            "error":
+                "No plant image uploaded."
         }), 400
 
-    image = request.files["plantImage"]
+
+    image = request.files[
+        "plantImage"
+    ]
+
+
+    # --------------------------------------------------------
+    # CHECK FILE NAME
+    # --------------------------------------------------------
 
     if image.filename == "":
 
         return jsonify({
-            "error": "No image selected."
+            "error":
+                "No image selected."
         }), 400
+
 
     filename = secure_filename(
         image.filename
     )
 
+
     if not filename:
 
         return jsonify({
-            "error": "Invalid image filename."
+            "error":
+                "Invalid image filename."
         }), 400
+
+
+    # --------------------------------------------------------
+    # CREATE UPLOAD DIRECTORY
+    # --------------------------------------------------------
 
     upload_folder = os.path.join(
         BASE_DIR,
@@ -350,19 +422,31 @@ def analyze_image():
         exist_ok=True
     )
 
+
     image_path = os.path.join(
         upload_folder,
         filename
     )
 
+
+    # --------------------------------------------------------
+    # SAVE IMAGE TEMPORARILY
+    # --------------------------------------------------------
+
     image.save(
         image_path
     )
+
 
     print(
         "Image received:",
         filename
     )
+
+
+    # --------------------------------------------------------
+    # RUN MODEL
+    # --------------------------------------------------------
 
     try:
 
@@ -374,14 +458,40 @@ def analyze_image():
             result
         )
 
+
     except Exception as e:
 
-        print("\nTFLITE ERROR")
+        print("\n============================================")
+        print("TFLITE ERROR")
+        print("============================================")
         print(str(e))
 
         return jsonify({
             "error": str(e)
         }), 500
+
+
+    # --------------------------------------------------------
+    # DELETE TEMPORARY UPLOAD
+    # --------------------------------------------------------
+
+    finally:
+
+        try:
+
+            if os.path.exists(
+                image_path
+            ):
+                os.remove(
+                    image_path
+                )
+
+        except Exception as cleanup_error:
+
+            print(
+                "Upload cleanup warning:",
+                cleanup_error
+            )
 
 
 # ============================================================
