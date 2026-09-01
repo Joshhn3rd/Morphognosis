@@ -151,9 +151,9 @@ def predict_plant_image(image_path):
     # CNN PREDICTION
     # --------------------------------------------------------
 
-    predictions = cnn_model.predict(
-        image_array,
-        training=False
+    predictions = cnn_model(
+    image_array,
+    training=False
     )
 
 
