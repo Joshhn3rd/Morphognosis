@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
 import os
@@ -10,6 +11,7 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 
 app = Flask(__name__)
+CORS(app)
 
 
 # ============================================================
@@ -151,7 +153,7 @@ def predict_plant_image(image_path):
 
     predictions = cnn_model.predict(
         image_array,
-        verbose=0
+        training=False
     )
 
 
