@@ -3,4 +3,17 @@ venv/
 __pycache__/
 *.pyc
 .env
+
+# Uploaded images
 static/uploads/*
+cnn/uploads/
+
+# Large training dataset
+dataset/
+
+# Vercel local files
+.vercel/
+
+app_backup.py
+cnn/app_backup.py
+cnn/uploads/

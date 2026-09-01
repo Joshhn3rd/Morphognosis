@@ -1,6 +1,6 @@
 Flask
 Werkzeug
 numpy
-tensorflow
 xgboost
 scikit-learn
+requests

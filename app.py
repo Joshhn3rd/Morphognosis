@@ -5,11 +5,7 @@ from models.hybrid_formula import HybridFormula
 from models.predict_xgboost import predict_growth
 
 import os
-import json
-import numpy as np
-import tensorflow as tf
-
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+import requests
 
 
 app = Flask(__name__)
@@ -32,68 +28,15 @@ formula = HybridFormula()
 
 
 # ============================================================
-# 3. CNN MODEL PATHS
+# 3. CNN SERVICE
 # ============================================================
 
-CNN_MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "saved_models",
-    "mobilenetv2_plant_analysis.keras"
-)
-
-CNN_CLASS_PATH = os.path.join(
-    BASE_DIR,
-    "saved_models",
-    "mobilenetv2_plant_analysis_classes.json"
-)
-
-
-# ============================================================
-# 4. LOAD CNN MODEL
-# ============================================================
-
-print("\n============================================")
-print("LOADING MORPHOGNOSIS CNN")
-print("============================================")
-
-if not os.path.exists(CNN_MODEL_PATH):
-
-    print("WARNING: CNN model not found:")
-    print(CNN_MODEL_PATH)
-
-    cnn_model = None
-
-else:
-
-    cnn_model = tf.keras.models.load_model(
-        CNN_MODEL_PATH
-    )
-
-    print("CNN model loaded successfully.")
-
-
-# ============================================================
-# 5. LOAD CNN CLASS MAPPING
-# ============================================================
-
-cnn_classes = None
-
-if os.path.exists(CNN_CLASS_PATH):
-
-    with open(
-        CNN_CLASS_PATH,
-        "r",
-        encoding="utf-8"
-    ) as file:
-
-        cnn_classes = json.load(file)
-
-    print("CNN class mapping loaded successfully.")
-
-else:
-
-    print("WARNING: CNN class mapping not found:")
-    print(CNN_CLASS_PATH)
+# Local default: separate CNN Flask app on port 5001.
+# In deployment, set CNN_SERVICE_URL to the public CNN service URL.
+CNN_SERVICE_URL = os.getenv(
+    "CNN_SERVICE_URL",
+    "http://127.0.0.1:5001"
+).rstrip("/")
 
 
 # ============================================================
@@ -394,319 +337,6 @@ def combine_analysis(
         "branchSource":
             branch_source
     }
-
-
-# ============================================================
-# 12. CNN IMAGE PREDICTION
-# ============================================================
-
-def predict_plant_image(
-    image_path
-):
-
-    # --------------------------------------------------------
-    # CHECK CNN MODEL
-    # --------------------------------------------------------
-
-    if cnn_model is None:
-
-        raise RuntimeError(
-            "CNN model is not loaded."
-        )
-
-
-    # --------------------------------------------------------
-    # CHECK CLASS MAPPING
-    # --------------------------------------------------------
-
-    if cnn_classes is None:
-
-        raise RuntimeError(
-            "CNN class mapping is not loaded."
-        )
-
-
-    IMAGE_SIZE = (
-        224,
-        224
-    )
-
-
-    # ========================================================
-    # LOAD IMAGE
-    # ========================================================
-
-    image = tf.keras.utils.load_img(
-
-        image_path,
-
-        target_size=IMAGE_SIZE
-
-    )
-
-
-    # ========================================================
-    # CONVERT IMAGE TO ARRAY
-    # ========================================================
-
-    image_array = tf.keras.utils.img_to_array(
-        image
-    )
-
-
-    image_array = np.expand_dims(
-        image_array,
-        axis=0
-    )
-
-
-    # ========================================================
-    # MOBILENETV2 PREPROCESSING
-    # ========================================================
-
-    image_array = preprocess_input(
-        image_array
-    )
-
-
-    # ========================================================
-    # CNN PREDICTION
-    # ========================================================
-
-    predictions = cnn_model.predict(
-
-        image_array,
-
-        verbose=0
-
-    )
-
-
-    # ========================================================
-    # HANDLE CNN OUTPUT
-    # ========================================================
-
-    if isinstance(
-        predictions,
-        dict
-    ):
-
-        overall_prediction = predictions[
-            "overall_growth"
-        ][0]
-
-        leaf_prediction = predictions[
-            "leaf_distribution"
-        ][0]
-
-        branch_prediction = predictions[
-            "branch_development"
-        ][0]
-
-
-    elif isinstance(
-        predictions,
-        list
-    ):
-
-        overall_prediction = predictions[0][0]
-
-        leaf_prediction = predictions[1][0]
-
-        branch_prediction = predictions[2][0]
-
-
-    else:
-
-        raise RuntimeError(
-            "Unexpected CNN output format."
-        )
-
-
-    # ========================================================
-    # CNN CLASS INDICES
-    # ========================================================
-
-    overall_index = int(
-        np.argmax(
-            overall_prediction
-        )
-    )
-
-
-    leaf_index = int(
-        np.argmax(
-            leaf_prediction
-        )
-    )
-
-
-    branch_index = int(
-        np.argmax(
-            branch_prediction
-        )
-    )
-
-
-    # ========================================================
-    # CNN LABELS
-    # ========================================================
-
-    cnn_growth = cnn_classes[
-        "overall_growth"
-    ][
-        str(overall_index)
-    ]
-
-
-    cnn_leaf = cnn_classes[
-        "leaf_distribution"
-    ][
-        str(leaf_index)
-    ]
-
-
-    cnn_branch = cnn_classes[
-        "branch_development"
-    ][
-        str(branch_index)
-    ]
-
-
-    # ========================================================
-    # CNN CONFIDENCE
-    # ========================================================
-
-    cnn_growth_confidence = (
-
-        float(
-            overall_prediction[
-                overall_index
-            ]
-        )
-
-        * 100
-
-    )
-
-
-    cnn_leaf_confidence = (
-
-        float(
-            leaf_prediction[
-                leaf_index
-            ]
-        )
-
-        * 100
-
-    )
-
-
-    cnn_branch_confidence = (
-
-        float(
-            branch_prediction[
-                branch_index
-            ]
-        )
-
-        * 100
-
-    )
-
-
-    # ========================================================
-    # RESULT
-    # ========================================================
-
-    result = {
-
-        "overallGrowth":
-            cnn_growth,
-
-        "overallGrowthConfidence":
-            round(
-                cnn_growth_confidence,
-                2
-            ),
-
-        "leafDistribution":
-            cnn_leaf,
-
-        "leafDistributionConfidence":
-            round(
-                cnn_leaf_confidence,
-                2
-            ),
-
-        "branchDevelopment":
-            cnn_branch,
-
-        "branchDevelopmentConfidence":
-            round(
-                cnn_branch_confidence,
-                2
-            ),
-
-
-        # Independent CNN values
-
-        "cnnGrowth":
-            cnn_growth,
-
-        "cnnLeafDistribution":
-            cnn_leaf,
-
-        "cnnBranchDevelopment":
-            cnn_branch
-
-    }
-
-
-    # ========================================================
-    # PRINT CNN RESULT
-    # ========================================================
-
-    print("\n============================================")
-    print("CNN IMAGE ANALYSIS")
-    print("============================================")
-
-
-    print(
-
-        "Growth:",
-
-        cnn_growth,
-
-        f"({cnn_growth_confidence:.2f}%)"
-
-    )
-
-
-    print(
-
-        "Leaves:",
-
-        cnn_leaf,
-
-        f"({cnn_leaf_confidence:.2f}%)"
-
-    )
-
-
-    print(
-
-        "Branches:",
-
-        cnn_branch,
-
-        f"({cnn_branch_confidence:.2f}%)"
-
-    )
-
-
-    return result
 
 
 # ============================================================
@@ -1062,304 +692,103 @@ def predict():
 
 
         # ====================================================
-        # I. GET PLANT IMAGE
+        # I. GET PLANT IMAGE + CALL SEPARATE CNN SERVICE
         # ====================================================
 
-        image = request.files.get(
-            "plantImage"
-        )
-
+        image = request.files.get("plantImage")
 
         if image and image.filename:
 
+            filename = secure_filename(image.filename)
+
+            if not filename:
+                raise ValueError("Invalid image filename.")
 
             print("\n============================================")
             print("PLANT IMAGE RECEIVED")
             print("============================================")
+            print("Filename:", filename)
+            print("CNN service:", CNN_SERVICE_URL)
 
+            # Forward the uploaded image to the independent CNN API.
+            # The main app never imports TensorFlow or loads MobileNetV2.
+            image.stream.seek(0)
 
-            # ------------------------------------------------
-            # SECURE FILENAME
-            # ------------------------------------------------
+            try:
+                cnn_response = requests.post(
+                    f"{CNN_SERVICE_URL}/analyze_image",
+                    files={
+                        "plantImage": (
+                            filename,
+                            image.stream,
+                            image.mimetype or "application/octet-stream"
+                        )
+                    },
+                    timeout=60
+                )
+            except requests.RequestException as exc:
+                raise RuntimeError(
+                    f"Could not reach CNN service at {CNN_SERVICE_URL}: {exc}"
+                ) from exc
 
-            filename = secure_filename(
-                image.filename
-            )
+            try:
+                cnn_result = cnn_response.json()
+            except ValueError as exc:
+                raise RuntimeError(
+                    "CNN service returned a non-JSON response."
+                ) from exc
 
-
-            if not filename:
-
-                raise ValueError(
-                    "Invalid image filename."
+            if not cnn_response.ok:
+                raise RuntimeError(
+                    cnn_result.get("error")
+                    or f"CNN service failed with HTTP {cnn_response.status_code}."
                 )
 
-
-            print(
-                "Filename:",
-                filename
-            )
-
-
-            # ------------------------------------------------
-            # UPLOAD FOLDER
-            # ------------------------------------------------
-
-            upload_folder = os.path.join(
-
-                BASE_DIR,
-
-                "static",
-
-                "uploads"
-
-            )
-
-
-            os.makedirs(
-
-                upload_folder,
-
-                exist_ok=True
-
-            )
-
-
-            # ------------------------------------------------
-            # IMAGE PATH
-            # ------------------------------------------------
-
-            image_path = os.path.join(
-
-                upload_folder,
-
-                filename
-
-            )
-
-
-            # ------------------------------------------------
-            # SAVE IMAGE
-            # ------------------------------------------------
-
-            image.save(
-                image_path
-            )
-
-
-            print(
-                "Image saved:",
-                image_path
-            )
-
-
-            # =================================================
-            # J. INDEPENDENT CNN ANALYSIS
-            # =================================================
-
-            cnn_result = predict_plant_image(
-
-                image_path
-
-            )
-
-
-            # =================================================
-            # K. COMBINE NUMERICAL + CNN
-            # =================================================
-
             combined_result = combine_analysis(
-
-                numerical_growth=
-                    structural_growth,
-
-                numerical_leaf=
-                    structural_leaf,
-
-                numerical_branch=
-                    structural_branch,
-
-
-                cnn_growth=
-                    cnn_result[
-                        "cnnGrowth"
-                    ],
-
-                cnn_leaf=
-                    cnn_result[
-                        "cnnLeafDistribution"
-                    ],
-
-                cnn_branch=
-                    cnn_result[
-                        "cnnBranchDevelopment"
-                    ],
-
-
-                cnn_growth_confidence=
-                    cnn_result[
-                        "overallGrowthConfidence"
-                    ],
-
-                cnn_leaf_confidence=
-                    cnn_result[
-                        "leafDistributionConfidence"
-                    ],
-
-                cnn_branch_confidence=
-                    cnn_result[
-                        "branchDevelopmentConfidence"
-                    ]
-
+                numerical_growth=structural_growth,
+                numerical_leaf=structural_leaf,
+                numerical_branch=structural_branch,
+                cnn_growth=cnn_result["overallGrowth"],
+                cnn_leaf=cnn_result["leafDistribution"],
+                cnn_branch=cnn_result["branchDevelopment"],
+                cnn_growth_confidence=cnn_result["overallGrowthConfidence"],
+                cnn_leaf_confidence=cnn_result["leafDistributionConfidence"],
+                cnn_branch_confidence=cnn_result["branchDevelopmentConfidence"]
             )
-
-
-            # =================================================
-            # L. ADD CNN RESULT
-            # =================================================
 
             final_result.update({
-
-                # ---------------------------------------------
-                # CNN RESULT
-                # ---------------------------------------------
-
-                "cnnGrowth":
-                    cnn_result[
-                        "cnnGrowth"
-                    ],
-
-                "cnnGrowthConfidence":
-                    cnn_result[
-                        "overallGrowthConfidence"
-                    ],
-
-
-                "cnnLeafDistribution":
-                    cnn_result[
-                        "cnnLeafDistribution"
-                    ],
-
-                "cnnLeafDistributionConfidence":
-                    cnn_result[
-                        "leafDistributionConfidence"
-                    ],
-
-
-                "cnnBranchDevelopment":
-                    cnn_result[
-                        "cnnBranchDevelopment"
-                    ],
-
-                "cnnBranchDevelopmentConfidence":
-                    cnn_result[
-                        "branchDevelopmentConfidence"
-                    ],
-
-
-                # ---------------------------------------------
-                # COMBINED RESULT
-                # ---------------------------------------------
-
-                "finalGrowth":
-                    combined_result[
-                        "growth"
-                    ],
-
-                "finalLeafDistribution":
-                    combined_result[
-                        "leaf"
-                    ],
-
-                "finalBranchDevelopment":
-                    combined_result[
-                        "branch"
-                    ],
-
-
-                # ---------------------------------------------
-                # DOMINANCE
-                # ---------------------------------------------
-
-                "growthSource":
-                    combined_result[
-                        "growthSource"
-                    ],
-
-                "leafSource":
-                    combined_result[
-                        "leafSource"
-                    ],
-
-                "branchSource":
-                    combined_result[
-                        "branchSource"
-                    ],
-
-
-                # ---------------------------------------------
-                # IMAGE
-                # ---------------------------------------------
-
-                "image":
-                    "/static/uploads/"
-                    + filename
-
+                "cnnGrowth": cnn_result["overallGrowth"],
+                "cnnGrowthConfidence": cnn_result["overallGrowthConfidence"],
+                "cnnLeafDistribution": cnn_result["leafDistribution"],
+                "cnnLeafDistributionConfidence": cnn_result["leafDistributionConfidence"],
+                "cnnBranchDevelopment": cnn_result["branchDevelopment"],
+                "cnnBranchDevelopmentConfidence": cnn_result["branchDevelopmentConfidence"],
+                "finalGrowth": combined_result["growth"],
+                "finalLeafDistribution": combined_result["leaf"],
+                "finalBranchDevelopment": combined_result["branch"],
+                "growthSource": combined_result["growthSource"],
+                "leafSource": combined_result["leafSource"],
+                "branchSource": combined_result["branchSource"],
+                "imageFilename": filename
             })
-
 
         else:
 
-
-            print(
-                "\nNo plant image uploaded."
-            )
-
+            print("\nNo plant image uploaded.")
 
             final_result.update({
-
-                "cnnGrowth":
-                    "No image",
-
-                "cnnGrowthConfidence":
-                    0,
-
-
-                "cnnLeafDistribution":
-                    "No image",
-
-                "cnnLeafDistributionConfidence":
-                    0,
-
-
-                "cnnBranchDevelopment":
-                    "No image",
-
-                "cnnBranchDevelopmentConfidence":
-                    0,
-
-
-                # Without CNN, numerical classification
-                # becomes the final result.
-
-                "finalGrowth":
-                    structural_growth,
-
-                "finalLeafDistribution":
-                    structural_leaf,
-
-                "finalBranchDevelopment":
-                    structural_branch,
-
-
-                "growthSource":
-                    "numerical_only",
-
-                "leafSource":
-                    "numerical_only",
-
-                "branchSource":
-                    "numerical_only"
-
+                "cnnGrowth": "No image",
+                "cnnGrowthConfidence": 0,
+                "cnnLeafDistribution": "No image",
+                "cnnLeafDistributionConfidence": 0,
+                "cnnBranchDevelopment": "No image",
+                "cnnBranchDevelopmentConfidence": 0,
+                "finalGrowth": structural_growth,
+                "finalLeafDistribution": structural_leaf,
+                "finalBranchDevelopment": structural_branch,
+                "growthSource": "numerical_only",
+                "leafSource": "numerical_only",
+                "branchSource": "numerical_only"
             })
 
 
@@ -1572,141 +1001,6 @@ def predict():
         print("\n============================================")
         print("PREDICTION ERROR")
         print("============================================")
-
-
-        print(
-            str(e)
-        )
-
-
-        return jsonify({
-
-            "error":
-                str(e)
-
-        }), 500
-
-
-# ============================================================
-# 14. DIRECT CNN IMAGE ANALYSIS
-# ============================================================
-
-@app.route(
-    "/analyze_image",
-    methods=["POST"]
-)
-
-def analyze_image():
-
-
-    print("\n============================================")
-    print("DIRECT CNN IMAGE ANALYSIS")
-    print("============================================")
-
-
-    if "plantImage" not in request.files:
-
-        return jsonify({
-
-            "error":
-                "No plant image uploaded."
-
-        }), 400
-
-
-    image = request.files[
-        "plantImage"
-    ]
-
-
-    if image.filename == "":
-
-        return jsonify({
-
-            "error":
-                "No image selected."
-
-        }), 400
-
-
-    filename = secure_filename(
-        image.filename
-    )
-
-
-    if not filename:
-
-        return jsonify({
-
-            "error":
-                "Invalid image filename."
-
-        }), 400
-
-
-    upload_folder = os.path.join(
-
-        BASE_DIR,
-
-        "static",
-
-        "uploads"
-
-    )
-
-
-    os.makedirs(
-
-        upload_folder,
-
-        exist_ok=True
-
-    )
-
-
-    image_path = os.path.join(
-
-        upload_folder,
-
-        filename
-
-    )
-
-
-    image.save(
-        image_path
-    )
-
-
-    try:
-
-
-        results = predict_plant_image(
-
-            image_path
-
-        )
-
-
-        results["image"] = (
-
-            "/static/uploads/"
-            + filename
-
-        )
-
-
-        return jsonify(
-            results
-        )
-
-
-    except Exception as e:
-
-
-        print(
-            "\nCNN ERROR:"
-        )
 
 
         print(
