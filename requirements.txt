@@ -1,6 +1,6 @@
 Flask
 Werkzeug
 numpy
-xgboost
+xgboost-cpu
 scikit-learn
 requests
