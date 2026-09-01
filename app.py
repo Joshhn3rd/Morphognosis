@@ -724,7 +724,7 @@ def predict():
                             image.mimetype or "application/octet-stream"
                         )
                     },
-                    timeout=60
+                    timeout=180
                 )
             except requests.RequestException as exc:
                 raise RuntimeError(
