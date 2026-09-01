@@ -58,7 +58,8 @@ if not os.path.exists(CNN_MODEL_PATH):
 
 
 cnn_model = tf.keras.models.load_model(
-    CNN_MODEL_PATH
+    CNN_MODEL_PATH,
+    compile=False
 )
 
 
