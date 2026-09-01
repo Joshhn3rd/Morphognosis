@@ -5,9 +5,8 @@ from werkzeug.utils import secure_filename
 import os
 import json
 import numpy as np
-import tensorflow as tf
-
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from PIL import Image
+from ai_edge_litert.interpreter import Interpreter
 
 
 app = Flask(__name__)
@@ -24,15 +23,14 @@ BASE_DIR = os.path.dirname(
 
 
 # ============================================================
-# 2. CNN MODEL PATH
+# 2. TFLITE MODEL PATH
 # ============================================================
 
-CNN_MODEL_PATH = os.path.join(
+TFLITE_MODEL_PATH = os.path.join(
     BASE_DIR,
     "saved_models",
-    "mobilenetv2_plant_analysis.keras"
+    "mobilenetv2_plant_analysis.tflite"
 )
-
 
 CNN_CLASS_PATH = os.path.join(
     BASE_DIR,
@@ -42,28 +40,31 @@ CNN_CLASS_PATH = os.path.join(
 
 
 # ============================================================
-# 3. LOAD CNN MODEL
+# 3. LOAD TFLITE MODEL
 # ============================================================
 
 print("\n============================================")
-print("LOADING MORPHOGNOSIS CNN SERVICE")
+print("LOADING MORPHOGNOSIS TFLITE SERVICE")
 print("============================================")
 
-
-if not os.path.exists(CNN_MODEL_PATH):
-
+if not os.path.exists(TFLITE_MODEL_PATH):
     raise FileNotFoundError(
-        f"CNN model not found: {CNN_MODEL_PATH}"
+        f"TFLite model not found: {TFLITE_MODEL_PATH}"
     )
 
-
-cnn_model = tf.keras.models.load_model(
-    CNN_MODEL_PATH,
-    compile=False
+interpreter = Interpreter(
+    model_path=TFLITE_MODEL_PATH,
+    num_threads=1
 )
 
+interpreter.allocate_tensors()
 
-print("CNN model loaded successfully.")
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+print("TFLite model loaded successfully.")
+print("Input:", input_details)
+print("Outputs:", output_details)
 
 
 # ============================================================
@@ -71,20 +72,16 @@ print("CNN model loaded successfully.")
 # ============================================================
 
 if not os.path.exists(CNN_CLASS_PATH):
-
     raise FileNotFoundError(
         f"CNN class mapping not found: {CNN_CLASS_PATH}"
     )
-
 
 with open(
     CNN_CLASS_PATH,
     "r",
     encoding="utf-8"
 ) as file:
-
     cnn_classes = json.load(file)
-
 
 print("CNN class mapping loaded successfully.")
 
@@ -97,106 +94,112 @@ print("CNN class mapping loaded successfully.")
 def home():
 
     return jsonify({
-        "service": "Morphognosis CNN",
+        "service": "Morphognosis TFLite CNN",
         "status": "online"
     })
 
 
 # ============================================================
-# 6. CNN IMAGE ANALYSIS
+# 6. TFLITE IMAGE ANALYSIS
 # ============================================================
 
 def predict_plant_image(image_path):
 
-    IMAGE_SIZE = (
-        224,
-        224
+    # --------------------------------------------------------
+    # LOAD + RESIZE IMAGE
+    # --------------------------------------------------------
+
+    image = Image.open(image_path).convert("RGB")
+    image = image.resize((224, 224))
+
+    image_array = np.asarray(
+        image,
+        dtype=np.float32
     )
 
-
     # --------------------------------------------------------
-    # LOAD IMAGE
-    # --------------------------------------------------------
-
-    image = tf.keras.utils.load_img(
-        image_path,
-        target_size=IMAGE_SIZE
-    )
-
-
-    # --------------------------------------------------------
-    # IMAGE TO ARRAY
+    # MOBILENETV2 PREPROCESSING
+    # Equivalent to preprocess_input()
+    # Converts 0..255 -> -1..1
     # --------------------------------------------------------
 
-    image_array = tf.keras.utils.img_to_array(
-        image
-    )
-
+    image_array = (
+        image_array / 127.5
+    ) - 1.0
 
     image_array = np.expand_dims(
         image_array,
         axis=0
-    )
+    ).astype(np.float32)
 
 
     # --------------------------------------------------------
-    # MOBILENETV2 PREPROCESSING
+    # RUN TFLITE INFERENCE
     # --------------------------------------------------------
 
-    image_array = preprocess_input(
+    interpreter.set_tensor(
+        input_details[0]["index"],
         image_array
     )
 
+    interpreter.invoke()
+
 
     # --------------------------------------------------------
-    # CNN PREDICTION
+    # GET ALL THREE OUTPUTS
     # --------------------------------------------------------
 
-    predictions = cnn_model(
-    image_array,
-    training=False
-    )
+    outputs = {}
+
+    for detail in output_details:
+
+        output_value = interpreter.get_tensor(
+            detail["index"]
+        )[0]
+
+        output_name = detail["name"].lower()
+
+        if "overall" in output_name:
+            outputs["overall_growth"] = output_value
+
+        elif "leaf" in output_name:
+            outputs["leaf_distribution"] = output_value
+
+        elif "branch" in output_name:
+            outputs["branch_development"] = output_value
 
 
-    # ========================================================
-    # HANDLE MODEL OUTPUT
-    # ========================================================
+    # --------------------------------------------------------
+    # FALLBACK FOR OUTPUT ORDER
+    # --------------------------------------------------------
 
-    if isinstance(
-        predictions,
-        dict
-    ):
+    if len(outputs) != 3:
 
-        overall_prediction = predictions[
-            "overall_growth"
-        ][0]
+        raw_outputs = [
+            interpreter.get_tensor(
+                detail["index"]
+            )[0]
+            for detail in output_details
+        ]
 
-        leaf_prediction = predictions[
-            "leaf_distribution"
-        ][0]
-
-        branch_prediction = predictions[
-            "branch_development"
-        ][0]
+        outputs = {
+            "overall_growth": raw_outputs[0],
+            "leaf_distribution": raw_outputs[1],
+            "branch_development": raw_outputs[2]
+        }
 
 
-    elif isinstance(
-        predictions,
-        list
-    ):
+    overall_prediction = outputs[
+        "overall_growth"
+    ]
 
-        overall_prediction = predictions[0][0]
+    leaf_prediction = outputs[
+        "leaf_distribution"
+    ]
 
-        leaf_prediction = predictions[1][0]
-
-        branch_prediction = predictions[2][0]
-
-
-    else:
-
-        raise RuntimeError(
-            "Unexpected CNN output format."
-        )
+    branch_prediction = outputs[
+        "branch_development"
+    ]
 
 
     # ========================================================
@@ -204,23 +207,15 @@ def predict_plant_image(image_path):
     # ========================================================
 
     overall_index = int(
-        np.argmax(
-            overall_prediction
-        )
+        np.argmax(overall_prediction)
     )
-
 
     leaf_index = int(
-        np.argmax(
-            leaf_prediction
-        )
+        np.argmax(leaf_prediction)
     )
 
-
     branch_index = int(
-        np.argmax(
-            branch_prediction
-        )
+        np.argmax(branch_prediction)
     )
 
 
@@ -230,63 +225,32 @@ def predict_plant_image(image_path):
 
     cnn_growth = cnn_classes[
         "overall_growth"
-    ][
-        str(overall_index)
-    ]
-
+    ][str(overall_index)]
 
     cnn_leaf = cnn_classes[
         "leaf_distribution"
-    ][
-        str(leaf_index)
-    ]
-
+    ][str(leaf_index)]
 
     cnn_branch = cnn_classes[
         "branch_development"
-    ][
-        str(branch_index)
-    ]
+    ][str(branch_index)]
 
 
     # ========================================================
     # CONFIDENCE
     # ========================================================
 
-    growth_confidence = (
+    growth_confidence = float(
+        overall_prediction[overall_index]
+    ) * 100
 
-        float(
-            overall_prediction[
-                overall_index
-            ]
-        )
+    leaf_confidence = float(
+        leaf_prediction[leaf_index]
+    ) * 100
 
-        * 100
-    )
-
-
-    leaf_confidence = (
-
-        float(
-            leaf_prediction[
-                leaf_index
-            ]
-        )
-
-        * 100
-    )
-
-
-    branch_confidence = (
-
-        float(
-            branch_prediction[
-                branch_index
-            ]
-        )
-
-        * 100
-    )
+    branch_confidence = float(
+        branch_prediction[branch_index]
+    ) * 100
 
 
     # ========================================================
@@ -294,45 +258,27 @@ def predict_plant_image(image_path):
     # ========================================================
 
     result = {
-
-        "overallGrowth":
-            cnn_growth,
-
-        "overallGrowthConfidence":
-            round(
-                growth_confidence,
-                2
-            ),
-
-        "leafDistribution":
-            cnn_leaf,
-
-        "leafDistributionConfidence":
-            round(
-                leaf_confidence,
-                2
-            ),
-
-        "branchDevelopment":
-            cnn_branch,
-
-        "branchDevelopmentConfidence":
-            round(
-                branch_confidence,
-                2
-            )
-
+        "overallGrowth": cnn_growth,
+        "overallGrowthConfidence": round(
+            growth_confidence,
+            2
+        ),
+        "leafDistribution": cnn_leaf,
+        "leafDistributionConfidence": round(
+            leaf_confidence,
+            2
+        ),
+        "branchDevelopment": cnn_branch,
+        "branchDevelopmentConfidence": round(
+            branch_confidence,
+            2
+        )
     }
 
 
-    # ========================================================
-    # TERMINAL OUTPUT
-    # ========================================================
-
     print("\n============================================")
-    print("CNN IMAGE ANALYSIS")
+    print("TFLITE IMAGE ANALYSIS")
     print("============================================")
-
 
     print(
         "Growth:",
@@ -340,20 +286,17 @@ def predict_plant_image(image_path):
         f"({growth_confidence:.2f}%)"
     )
 
-
     print(
         "Leaf Distribution:",
         cnn_leaf,
         f"({leaf_confidence:.2f}%)"
     )
 
-
     print(
         "Branch Development:",
         cnn_branch,
         f"({branch_confidence:.2f}%)"
     )
-
 
     return result
 
@@ -369,13 +312,8 @@ def predict_plant_image(image_path):
 def analyze_image():
 
     print("\n============================================")
-    print("CNN IMAGE REQUEST")
+    print("TFLITE IMAGE REQUEST")
     print("============================================")
-
-
-    # --------------------------------------------------------
-    # CHECK IMAGE
-    # --------------------------------------------------------
 
     if "plantImage" not in request.files:
 
@@ -383,11 +321,7 @@ def analyze_image():
             "error": "No plant image uploaded."
         }), 400
 
-
-    image = request.files[
-        "plantImage"
-    ]
-
+    image = request.files["plantImage"]
 
     if image.filename == "":
 
@@ -395,15 +329,9 @@ def analyze_image():
             "error": "No image selected."
         }), 400
 
-
-    # --------------------------------------------------------
-    # SECURE FILENAME
-    # --------------------------------------------------------
-
     filename = secure_filename(
         image.filename
     )
-
 
     if not filename:
 
@@ -411,51 +339,29 @@ def analyze_image():
             "error": "Invalid image filename."
         }), 400
 
-
-    # --------------------------------------------------------
-    # UPLOAD DIRECTORY
-    # --------------------------------------------------------
-
     upload_folder = os.path.join(
         BASE_DIR,
         "uploads"
     )
-
 
     os.makedirs(
         upload_folder,
         exist_ok=True
     )
 
-
-    # --------------------------------------------------------
-    # IMAGE PATH
-    # --------------------------------------------------------
-
     image_path = os.path.join(
         upload_folder,
         filename
     )
 
-
-    # --------------------------------------------------------
-    # SAVE IMAGE
-    # --------------------------------------------------------
-
     image.save(
         image_path
     )
-
 
     print(
         "Image received:",
         filename
     )
-
-
-    # --------------------------------------------------------
-    # ANALYZE
-    # --------------------------------------------------------
 
     try:
 
@@ -463,17 +369,14 @@ def analyze_image():
             image_path
         )
 
-
         return jsonify(
             result
         )
 
-
     except Exception as e:
 
-        print("\nCNN ERROR")
+        print("\nTFLITE ERROR")
         print(str(e))
-
 
         return jsonify({
             "error": str(e)
