@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if mode == 'signup' %}Create Account{% else %}Sign In{% endif %}</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+{% include "_header.xhtml" %}
+
+<div class="auth-card">
+
+    <h2>{% if mode == 'signup' %}Create Account{% else %}Sign In{% endif %}</h2>
+
+    {% if error %}
+    <p class="form-error" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form method="post"
+          action="{% if mode == 'signup' %}/signup{% else %}/login{% endif %}">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+        {% if mode == 'login' and next %}
+        <input type="hidden" name="next" value="{{ next }}" />
+        {% endif %}
+
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" required
+               autocomplete="username" autocapitalize="none" spellcheck="false"
+               value="{{ username or '' }}" />
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required
+               autocomplete="{% if mode == 'signup' %}new-password{% else %}current-password{% endif %}"
+               {% if mode == 'signup' %}minlength="{{ min_length }}"{% endif %} />
+
+        {% if mode == 'signup' %}
+        <label for="confirm">Confirm password</label>
+        <input id="confirm" name="confirm" type="password" required
+               autocomplete="new-password" minlength="{{ min_length }}" />
+
+        <p class="form-note">
+            Username: 3-30 letters or numbers. Password: at least {{ min_length }} characters.
+            <strong>Remember your password. It cannot be recovered.</strong>
+            No email or other personal information is needed.
+        </p>
+        {% endif %}
+
+        <button type="submit" class="predict-btn">
+            {% if mode == 'signup' %}Create account{% else %}Sign in{% endif %}
+        </button>
+
+    </form>
+
+    <p class="form-switch">
+        {% if mode == 'signup' %}
+        Already have an account? <a href="/login">Sign in</a>
+        {% else %}
+        New here? <a href="/signup">Create an account</a>
+        {% endif %}
+    </p>
+
+</div>
+
+</body>
+</html>

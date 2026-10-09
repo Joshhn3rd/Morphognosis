@@ -1,0 +1,39 @@
+<div class="hero">
+
+    <h1>MORPHOGNOSIS</h1>
+
+    <p class="subtitle">
+        PLANT STRUCTURE PREDICTOR
+    </p>
+
+</div>
+
+<div class="auth-bar">
+
+    {% if current_user %}
+
+        <span class="auth-user">Signed in as <strong>{{ current_user.username }}</strong></span>
+
+        <form method="post" action="/logout" class="auth-inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <button type="submit" class="auth-link">Sign out</button>
+        </form>
+
+    {% else %}
+
+        <a href="/login" class="auth-link">Sign in</a>
+        <a href="/signup" class="auth-link">Create account</a>
+
+    {% endif %}
+
+</div>
+
+<nav class="navbar">
+
+    <a href="/">HOME</a>
+
+    <a href="/prediction">PLANT PREDICTION</a>
+
+    <a href="/history">PREDICTION HISTORY</a>
+
+</nav>

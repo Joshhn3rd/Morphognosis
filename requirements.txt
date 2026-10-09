@@ -4,3 +4,4 @@ numpy
 xgboost-cpu
 scikit-learn
 requests
+psycopg2-binary

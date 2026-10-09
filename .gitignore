@@ -17,3 +17,5 @@ dataset/
 app_backup.py
 cnn/app_backup.py
 cnn/uploads/
+# Local accounts + measurements database (never commit)
+instance/

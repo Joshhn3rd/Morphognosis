@@ -1044,3 +1044,770 @@ body::after {
         width: 50%;
     }
 }
+
+/* =========================================================
+   SIGN IN BAR
+========================================================= */
+
+.auth-bar {
+    width: min(90%, 1200px);
+
+    margin: 14px auto 0;
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    align-items: center;
+
+    gap: 14px;
+
+    flex-wrap: wrap;
+
+    color: #5b4b36;
+
+    font-size: 16px;
+}
+
+.auth-inline-form {
+    display: inline;
+}
+
+.auth-link {
+    background: none;
+
+    border: none;
+
+    padding: 6px 4px;
+
+    font: inherit;
+
+    font-weight: bold;
+
+    color: #52613f;
+
+    text-decoration: underline;
+
+    cursor: pointer;
+}
+
+.auth-link:hover {
+    color: #3c472d;
+}
+
+
+/* =========================================================
+   SIGN IN / CREATE ACCOUNT
+========================================================= */
+
+.auth-card {
+    width: min(92%, 460px);
+
+    margin: 35px auto 60px;
+
+    background: rgba(255, 252, 245, 0.95);
+
+    padding: 30px;
+
+    border-radius: 20px;
+
+    border: 1px solid rgba(120, 100, 70, 0.15);
+
+    box-shadow:
+        0 8px 20px rgba(70, 55, 35, 0.12);
+}
+
+.auth-card h2 {
+    text-align: center;
+
+    color: #66553e;
+
+    font-size: clamp(24px, 4vw, 32px);
+
+    margin-bottom: 20px;
+}
+
+.auth-card label {
+    display: block;
+
+    margin: 16px 0 6px;
+
+    font-weight: bold;
+
+    color: #5b4b36;
+}
+
+.auth-card input {
+    width: 100%;
+
+    padding: 14px;
+
+    font-size: 18px;
+
+    border: 2px solid #cdbfa6;
+
+    border-radius: 12px;
+
+    background: #fffdf8;
+}
+
+.auth-card input:focus {
+    outline: none;
+
+    border-color: #687854;
+}
+
+.auth-card .predict-btn {
+    width: 100%;
+
+    margin-top: 22px;
+}
+
+.form-note {
+    margin-top: 14px;
+
+    font-size: 15px;
+
+    line-height: 1.45;
+
+    color: #5b4b36;
+}
+
+.form-switch {
+    margin-top: 18px;
+
+    text-align: center;
+}
+
+.form-switch a {
+    color: #52613f;
+
+    font-weight: bold;
+}
+
+.form-error {
+    background: #f6dcd6;
+
+    color: #7a2a1c;
+
+    border: 1px solid #d9a79d;
+
+    border-radius: 12px;
+
+    padding: 12px 14px;
+
+    margin: 12px 0;
+
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   HOME: GROWTH STAGES
+========================================================= */
+
+.stage-section {
+    width: min(90%, 1200px);
+
+    margin: 0 auto 60px;
+}
+
+.stage-section h2 {
+    text-align: center;
+
+    color: #66553e;
+
+    font-size: clamp(24px, 4vw, 32px);
+}
+
+.stage-intro {
+    text-align: center;
+
+    margin: 8px 0 24px;
+
+    color: #5b4b36;
+
+    font-size: 18px;
+}
+
+.stage-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 18px;
+}
+
+.stage-card {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    padding: 26px 22px;
+
+    text-decoration: none;
+
+    background: rgba(255, 252, 245, 0.95);
+
+    color: #3f3528;
+
+    border-radius: 20px;
+
+    border: 1px solid rgba(120, 100, 70, 0.15);
+
+    border-top: 8px solid #687854;
+
+    box-shadow:
+        0 8px 20px rgba(70, 55, 35, 0.12);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.stage-card.stage-vegetative {
+    border-top-color: #8b7355;
+}
+
+.stage-card.stage-mature {
+    border-top-color: #5b4b36;
+}
+
+.stage-card:hover,
+.stage-card:focus-visible {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 12px 24px rgba(70, 55, 35, 0.18);
+}
+
+.stage-weeks {
+    font-size: 15px;
+
+    font-weight: bold;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+
+    color: #746247;
+}
+
+.stage-name {
+    font-size: clamp(22px, 2.6vw, 28px);
+
+    font-weight: 800;
+
+    color: #514332;
+}
+
+.stage-blurb {
+    font-size: 17px;
+
+    line-height: 1.4;
+
+    color: #5b4b36;
+}
+
+.stage-open {
+    margin-top: auto;
+
+    padding-top: 12px;
+
+    font-weight: bold;
+
+    color: #52613f;
+
+    font-size: 18px;
+}
+
+
+/* =========================================================
+   STAGE PAGE
+========================================================= */
+
+.stage-page {
+    width: min(92%, 1200px);
+
+    margin: 25px auto 60px;
+}
+
+.back-link {
+    display: inline-block;
+
+    margin-bottom: 10px;
+
+    color: #52613f;
+
+    font-weight: bold;
+
+    text-decoration: none;
+
+    font-size: 18px;
+}
+
+.stage-title {
+    color: #514332;
+
+    font-size: clamp(26px, 4vw, 38px);
+
+    margin-bottom: 18px;
+}
+
+.stage-title span {
+    display: block;
+
+    font-size: 0.55em;
+
+    color: #746247;
+}
+
+.panel {
+    background: rgba(255, 252, 245, 0.95);
+
+    padding: 28px;
+
+    border-radius: 20px;
+
+    border: 1px solid rgba(120, 100, 70, 0.15);
+
+    box-shadow:
+        0 8px 20px rgba(70, 55, 35, 0.12);
+
+    margin-bottom: 28px;
+}
+
+.panel h3 {
+    color: #66553e;
+
+    font-size: clamp(22px, 3.4vw, 28px);
+
+    margin-bottom: 8px;
+}
+
+.panel-note {
+    color: #5b4b36;
+
+    font-size: 18px;
+
+    line-height: 1.45;
+
+    margin-bottom: 14px;
+}
+
+.notice-warning {
+    background: #f4e7c4;
+
+    border: 1px solid #d8c07a;
+
+    border-radius: 12px;
+
+    padding: 10px 14px;
+
+    margin-bottom: 16px;
+
+    color: #5f4a14;
+
+    font-size: 16px;
+}
+
+.temp-check {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+
+    margin-bottom: 16px;
+}
+
+.temp-check label,
+.logger-pick label,
+.log-field label,
+.day-pick-label {
+    font-weight: bold;
+
+    color: #5b4b36;
+}
+
+.temp-check input,
+.logger-pick select,
+.log-field input {
+    padding: 12px 14px;
+
+    font-size: 18px;
+
+    border: 2px solid #cdbfa6;
+
+    border-radius: 12px;
+
+    background: #fffdf8;
+
+    color: #3f3528;
+}
+
+.temp-check input {
+    width: 140px;
+}
+
+.temp-check input:focus,
+.logger-pick select:focus,
+.log-field input:focus {
+    outline: none;
+
+    border-color: #687854;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.rec-table {
+    width: 100%;
+
+    min-width: 640px;
+
+    border-collapse: collapse;
+}
+
+.rec-table th {
+    background: #8b7355;
+
+    color: #ffffff;
+
+    padding: 13px 12px;
+
+    font-size: 16px;
+
+    text-align: center;
+}
+
+.rec-table td {
+    padding: 13px 12px;
+
+    text-align: center;
+
+    border-bottom: 1px solid #ddd3c3;
+
+    color: #4c402f;
+}
+
+.rec-table td.rec-note {
+    text-align: left;
+}
+
+.rec-table td.empty-row {
+    color: #746247;
+
+    font-style: italic;
+}
+
+.rec-table tr.rec-active td {
+    background: #dfe8cc;
+
+    font-weight: bold;
+}
+
+
+/* ---------- logger ---------- */
+
+.logger-signin {
+    display: flex;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+.logger-signin .predict-btn,
+.secondary-btn {
+    display: inline-flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    text-decoration: none;
+}
+
+.secondary-btn {
+    padding: 14px 26px;
+
+    min-height: 52px;
+
+    border-radius: 14px;
+
+    border: 2px solid #8b7355;
+
+    background: transparent;
+
+    color: #5b4b36;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.secondary-btn:hover {
+    background: rgba(139, 115, 85, 0.12);
+}
+
+.logger-pick {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 22px;
+
+    align-items: flex-end;
+
+    margin-bottom: 18px;
+}
+
+.logger-pick label {
+    display: block;
+
+    margin-bottom: 6px;
+}
+
+.logger-pick select {
+    min-width: 180px;
+}
+
+.day-pick-label {
+    display: block;
+
+    margin-bottom: 6px;
+}
+
+.day-buttons {
+    display: flex;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+}
+
+.day-btn {
+    width: 52px;
+
+    height: 52px;
+
+    border-radius: 12px;
+
+    border: 2px solid #cdbfa6;
+
+    background: #fffdf8;
+
+    color: #4c402f;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.day-btn:disabled {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+}
+
+.day-btn.day-logged {
+    background: #dfe8cc;
+
+    border-color: #687854;
+}
+
+.day-btn.day-selected {
+    background: #687854;
+
+    border-color: #52613f;
+
+    color: #ffffff;
+}
+
+.log-form {
+    border: 2px dashed #cdbfa6;
+
+    border-radius: 16px;
+
+    padding: 20px;
+
+    margin-bottom: 8px;
+}
+
+.log-form[hidden],
+.form-error[hidden] {
+    display: none;
+}
+
+.log-form h4 {
+    color: #514332;
+
+    font-size: 20px;
+
+    margin-bottom: 14px;
+}
+
+.log-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 16px;
+}
+
+.log-field label {
+    display: block;
+
+    margin-bottom: 6px;
+}
+
+.log-field input {
+    width: 100%;
+}
+
+.log-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    flex-wrap: wrap;
+
+    margin-top: 18px;
+}
+
+.save-status {
+    font-weight: bold;
+
+    font-size: 17px;
+
+    color: #5b4b36;
+}
+
+.save-status.ok {
+    color: #3f6a2c;
+}
+
+.save-status.warn {
+    color: #8a5a10;
+}
+
+.save-status.error {
+    color: #7a2a1c;
+}
+
+.sub-heading {
+    margin: 26px 0 10px;
+
+    color: #66553e;
+
+    font-size: 20px;
+}
+
+.row-actions {
+    white-space: nowrap;
+}
+
+.row-btn {
+    padding: 8px 14px;
+
+    margin: 0 3px;
+
+    border-radius: 10px;
+
+    border: 2px solid #8b7355;
+
+    background: transparent;
+
+    color: #5b4b36;
+
+    font-size: 15px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.row-btn:hover {
+    background: rgba(139, 115, 85, 0.14);
+}
+
+.row-btn-danger {
+    border-color: #a8533f;
+
+    color: #8a3523;
+}
+
+.row-btn-danger:hover {
+    background: rgba(168, 83, 63, 0.12);
+}
+
+
+/* =========================================================
+   NEW PAGES: TABLET + PHONE
+========================================================= */
+
+@media screen and (max-width: 900px) {
+
+    .stage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .log-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .auth-bar {
+        justify-content: center;
+    }
+}
+
+@media screen and (max-width: 600px) {
+
+    .panel {
+        padding: 18px;
+    }
+
+    .log-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .day-btn {
+        width: 46px;
+
+        height: 46px;
+    }
+
+    .logger-pick select {
+        width: 100%;
+    }
+
+    .logger-pick > div:first-child {
+        width: 100%;
+    }
+
+    /* Environmental Factors is on Home now: fit the phone screen
+       instead of scrolling sideways. */
+
+    .environment-table {
+        min-width: 0;
+    }
+
+    .environment-table th,
+    .environment-table td {
+        padding: 12px 10px;
+
+        font-size: 16px;
+    }
+}

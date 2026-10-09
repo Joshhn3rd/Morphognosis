@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Morphognosis</title>
 
     <link rel="stylesheet"
@@ -10,39 +11,93 @@
 
 <body>
 
-<div class="hero">
+{% include "_header.xhtml" %}
 
-    <h1>MORPHOGNOSIS</h1>
 
-    <p class="subtitle">
-        PLANT STRUCTURE PREDICTOR
-    </p>
+<!-- ============================================================
+     ENVIRONMENTAL FACTORS (moved here from its own page)
+     ============================================================ -->
+
+<div class="environment-container">
+
+    <h2>Environmental Factors</h2>
+
+    <table class="environment-table">
+
+        <tr>
+            <th>Factor</th>
+            <th>Influence on Plant Structure</th>
+        </tr>
+
+        <tr>
+            <td>Water</td>
+            <td>
+                Water availability affects plant growth, nutrient absorption,
+                leaf development, and overall plant structure.
+            </td>
+        </tr>
+
+        <tr>
+            <td>Sunlight</td>
+            <td>
+                Sunlight influences photosynthesis, leaf formation,
+                plant height, and growth patterns.
+            </td>
+        </tr>
+
+        <tr>
+            <td>Temperature</td>
+            <td>
+                Temperature affects plant metabolism, growth rate,
+                and responses to environmental stress.
+            </td>
+        </tr>
+
+        <tr>
+            <td>Previous Plant Structure</td>
+            <td>
+                Previous plant structure provides information about
+                earlier growth patterns and structural changes.
+            </td>
+        </tr>
+
+    </table>
 
 </div>
 
-<nav class="navbar">
 
-    <a href="/">HOME</a>
+<!-- ============================================================
+     GROWTH STAGES
+     ============================================================ -->
 
-    <a href="/prediction">
-        PLANT PREDICTION
-    </a>
+<div class="stage-section">
 
-    <a href="/environment">
-        ENVIRONMENTAL FACTORS
-    </a>
+    <h2>Growth Stages</h2>
 
-    <a href="/history">
-        PREDICTION HISTORY
-    </a>
+    <p class="stage-intro">
+        Choose your plant's stage to see the daily planning
+        recommendation and to record your measurements.
+    </p>
 
-</nav>
+    <div class="stage-grid">
 
-<div class="home">
+        {% for s in stages %}
 
-    <a href="/prediction" class="start-button">
-        START PREDICTING
-    </a>
+        <a class="stage-card stage-{{ s.slug }}" href="/stage/{{ s.slug }}">
+
+            <span class="stage-weeks">{{ s.label }}</span>
+
+            <span class="stage-name">{{ s.name }}</span>
+
+            <span class="stage-blurb">{{ s.blurb }}</span>
+
+            <span class="stage-open">Open &rarr;</span>
+
+        </a>
+
+        {% endfor %}
+
+    </div>
 
 </div>
 

@@ -1,14 +1,47 @@
-from flask import Flask, render_template, request, jsonify
+from datetime import timedelta
+
+from flask import Flask, render_template, request, jsonify, redirect
 from werkzeug.utils import secure_filename
 
 from models.hybrid_formula import HybridFormula
 from models.predict_xgboost import predict_growth
+
+import db as database
+from tracker import tracker_bp
 
 import os
 import requests
 
 
 app = Flask(__name__)
+
+
+# ============================================================
+# 0. LOGIN SESSIONS + TRACKER (accounts, stages, daily logger)
+# ============================================================
+
+# SECRET_KEY signs the login cookie. Set a long random value in the
+# Vercel environment variables. The fallback below is for your own
+# computer only, so the site refuses to start on Vercel without one.
+_secret_key = os.getenv("SECRET_KEY")
+
+if not _secret_key:
+    if database.ON_VERCEL:
+        raise RuntimeError(
+            "SECRET_KEY is not set. Add it to the Vercel environment variables."
+        )
+    _secret_key = "local-development-only-change-me"
+
+app.config.update(
+    SECRET_KEY=_secret_key,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=database.ON_VERCEL,
+    PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+)
+
+app.register_blueprint(tracker_bp)
+app.teardown_appcontext(database.close_db)
 
 
 # ============================================================
@@ -70,9 +103,8 @@ def prediction():
 @app.route("/environment")
 def environment():
 
-    return render_template(
-        "environment.xhtml"
-    )
+    # The Environmental Factors content now lives at the top of Home.
+    return redirect("/", code=301)
 
 
 # ============================================================

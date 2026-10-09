@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ stage.name }}</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+{% include "_header.xhtml" %}
+
+<div class="stage-page">
+
+    <a class="back-link" href="/">&larr; All growth stages</a>
+
+    <h2 class="stage-title">{{ stage.name }} <span>{{ stage.label }}</span></h2>
+
+
+    <!-- ========================================================
+         A. PLANNING RECOMMENDATION
+         ======================================================== -->
+
+    <section class="panel">
+
+        <h3>Planning Recommendation</h3>
+
+        <p class="panel-note">
+            Find the day's temperature to see how much sunlight and water
+            each plant needs.
+        </p>
+
+        {% if placeholders %}
+        <p class="notice-warning">
+            These starting values are placeholders and still need to be
+            verified against agronomic references.
+        </p>
+        {% endif %}
+
+        <div class="temp-check">
+            <label for="todayTemp">Today's temperature (&deg;C)</label>
+            <input id="todayTemp" type="number" inputmode="decimal"
+                   step="0.1" min="0" max="60" placeholder="e.g. 29" />
+        </div>
+
+        <div class="table-scroll">
+        <table class="rec-table" id="recTable">
+            <thead>
+                <tr>
+                    <th>Day's temperature</th>
+                    <th>Sunlight (hours/day)</th>
+                    <th>Water per plant (mL/day)</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr data-lo="{{ r.lo if r.lo is not none else '' }}"
+                    data-hi="{{ r.hi if r.hi is not none else '' }}">
+                    <td>{{ r.label }}</td>
+                    <td>{{ r.sunlight }}</td>
+                    <td>{{ r.water }}</td>
+                    <td class="rec-note">{{ r.note }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         B. DAILY MEASUREMENT LOGGER
+         ======================================================== -->
+
+    <section class="panel" id="logger"
+             data-slug="{{ stage.slug }}"
+             data-signed-in="{{ 'yes' if current_user else 'no' }}"
+             data-csrf="{{ csrf_token }}">
+
+        <h3>Daily Measurements</h3>
+
+        {% if not current_user %}
+
+        <p class="panel-note">
+            Sign in to record your daily measurements here instead of on paper.
+            Your records are saved to your account.
+        </p>
+
+        <div class="logger-signin">
+            <a class="predict-btn" href="/login?next=/stage/{{ stage.slug }}">Sign in</a>
+            <a class="secondary-btn" href="/signup">Create account</a>
+        </div>
+
+        {% else %}
+
+        <p class="panel-note">
+            Pick the week, then the day, then enter that day's measurements
+            and press Save.
+        </p>
+
+        <div class="logger-pick">
+
+            <div>
+                <label for="weekSelect">Week</label>
+                <select id="weekSelect">
+                    <option value="">Choose a week</option>
+                    {% for w in stage.weeks %}
+                    <option value="{{ w }}">Week {{ w }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="day-pick">
+                <span class="day-pick-label">Day</span>
+                <div class="day-buttons" id="dayButtons" role="group" aria-label="Day">
+                    {% for d in days %}
+                    <button type="button" class="day-btn" data-day="{{ d }}" disabled>
+                        {{ d }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <form id="logForm" class="log-form" novalidate hidden="hidden">
+
+            <h4 id="logFormTitle"></h4>
+
+            <div class="log-grid">
+                {% for f in fields %}
+                <div class="log-field">
+                    <label for="f_{{ f.key }}">
+                        {{ f.label }}{% if f.unit %} ({{ f.unit }}){% endif %}
+                    </label>
+                    <input id="f_{{ f.key }}" name="{{ f.key }}" type="number"
+                           inputmode="{{ 'numeric' if f.kind == 'int' else 'decimal' }}"
+                           step="{{ 1 if f.kind == 'int' else 'any' }}"
+                           min="{{ f.min }}" max="{{ f.max }}" required />
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="log-actions">
+                <button type="submit" class="predict-btn" id="saveBtn">Save</button>
+                <span id="saveStatus" class="save-status" role="status" aria-live="polite"></span>
+            </div>
+
+        </form>
+
+        <div id="loggerError" class="form-error" role="alert" hidden="hidden"></div>
+
+
+        <h4 class="sub-heading">Weekly averages</h4>
+
+        <div class="table-scroll">
+        <table class="rec-table" id="summaryTable">
+            <thead>
+                <tr>
+                    <th>Week</th>
+                    <th>Days logged</th>
+                    {% for f in fields %}
+                    <th>{{ f.label }}{% if f.unit %} ({{ f.unit }}){% endif %}</th>
+                    {% endfor %}
+                    <th>Water per week (mL, estimate)</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        </div>
+
+
+        <h4 class="sub-heading">Saved entries</h4>
+
+        <div class="table-scroll">
+        <table class="rec-table" id="entriesTable">
+            <thead>
+                <tr>
+                    <th>Week</th>
+                    <th>Day</th>
+                    {% for f in fields %}
+                    <th>{{ f.label }}{% if f.unit %} ({{ f.unit }}){% endif %}</th>
+                    {% endfor %}
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        </div>
+
+        <div class="log-actions">
+            <a class="secondary-btn" href="/api/export.csv">Export to CSV</a>
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+<script type="application/json" id="loggerConfig">{{ {'fields': fields, 'daysPerWeek': 7} | tojson }}</script>
+<script src="{{ url_for('static', filename='js/tracker.js') }}"></script>
+
+</body>
+</html>
