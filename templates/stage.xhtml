@@ -1,23 +1,30 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ stage.name }}</title>
+{% extends "base.xhtml" %}
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
-</head>
+{% block title %}{{ stage.name }} - Morphognosis{% endblock %}
 
-<body>
+{% block body_class %}page-gradient{% endblock %}
 
-{% include "_header.xhtml" %}
+{% block content %}
+
+<section class="stage-page-hero"
+         style="--img: url('{{ url_for('static', filename='images/' ~ stage.slug ~ '.jpg') }}')">
+
+    <div class="container">
+
+        <a class="back-link" href="/#stages">&larr; All growth stages</a>
+
+        <h1>{{ stage.name }}</h1>
+
+        <span class="weeks-chip">{{ stage.label }}</span>
+
+        <p>{{ stage.blurb }}</p>
+
+    </div>
+
+</section>
+
 
 <div class="stage-page">
-
-    <a class="back-link" href="/">&larr; All growth stages</a>
-
-    <h2 class="stage-title">{{ stage.name }} <span>{{ stage.label }}</span></h2>
 
 
     <!-- ========================================================
@@ -45,6 +52,8 @@
             <input id="todayTemp" type="number" inputmode="decimal"
                    step="0.1" min="0" max="60" placeholder="e.g. 29" />
         </div>
+
+        <p class="table-hint" aria-hidden="true">Swipe sideways to see the whole table &rarr;</p>
 
         <div class="table-scroll">
         <table class="rec-table" id="recTable">
@@ -92,7 +101,7 @@
         </p>
 
         <div class="logger-signin">
-            <a class="predict-btn" href="/login?next=/stage/{{ stage.slug }}">Sign in</a>
+            <a class="btn btn-dark" href="/login?next=/stage/{{ stage.slug }}">Sign in</a>
             <a class="secondary-btn" href="/signup">Create account</a>
         </div>
 
@@ -158,6 +167,8 @@
 
         <h4 class="sub-heading">Weekly averages</h4>
 
+        <p class="table-hint" aria-hidden="true">Swipe sideways to see the whole table &rarr;</p>
+
         <div class="table-scroll">
         <table class="rec-table" id="summaryTable">
             <thead>
@@ -176,6 +187,8 @@
 
 
         <h4 class="sub-heading">Saved entries</h4>
+
+        <p class="table-hint" aria-hidden="true">Swipe sideways to see the whole table &rarr;</p>
 
         <div class="table-scroll">
         <table class="rec-table" id="entriesTable">
@@ -203,8 +216,9 @@
 
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script type="application/json" id="loggerConfig">{{ {'fields': fields, 'daysPerWeek': 7} | tojson }}</script>
 <script src="{{ url_for('static', filename='js/tracker.js') }}"></script>
-
-</body>
-</html>
+{% endblock %}

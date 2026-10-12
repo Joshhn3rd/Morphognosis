@@ -103,8 +103,9 @@ def prediction():
 @app.route("/environment")
 def environment():
 
-    # The Environmental Factors content now lives at the top of Home.
-    return redirect("/", code=301)
+    # Environmental Factors now lives on Home (#environment) and on
+    # the /environment/<sunlight|temperature|water> pages.
+    return redirect("/#environment", code=301)
 
 
 # ============================================================

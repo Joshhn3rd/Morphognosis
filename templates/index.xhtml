@@ -1,105 +1,105 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Morphognosis</title>
+{% extends "base.xhtml" %}
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
-</head>
+{% block title %}Morphognosis{% endblock %}
 
-<body>
+{% block content %}
 
-{% include "_header.xhtml" %}
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+
+<section class="hero"
+         style="--hero-image: url('{{ url_for('static', filename='images/hero.jpg') }}')">
+
+    <div class="hero-copy">
+
+        <h1>Bringing innovation to the farm</h1>
+
+        <p>Transforming agriculture with smart solutions</p>
+
+        <a class="btn btn-white" href="#stages">Get started</a>
+
+    </div>
+
+</section>
 
 
 <!-- ============================================================
-     ENVIRONMENTAL FACTORS (moved here from its own page)
+     ENVIRONMENTS THAT AFFECT PLANT GROWTH
      ============================================================ -->
 
-<div class="environment-container">
+<section class="section section-env" id="environment">
 
-    <h2>Environmental Factors</h2>
+    <div class="container">
 
-    <table class="environment-table">
+        <div class="section-head">
+            <h2>Environments that affect plant growth</h2>
+            <p>Sunlight, temperature and water shape how your eggplants grow.
+               Tap a factor to learn more.</p>
+        </div>
 
-        <tr>
-            <th>Factor</th>
-            <th>Influence on Plant Structure</th>
-        </tr>
+        <div class="env-grid">
 
-        <tr>
-            <td>Water</td>
-            <td>
-                Water availability affects plant growth, nutrient absorption,
-                leaf development, and overall plant structure.
-            </td>
-        </tr>
+            {% for f in factors %}
 
-        <tr>
-            <td>Sunlight</td>
-            <td>
-                Sunlight influences photosynthesis, leaf formation,
-                plant height, and growth patterns.
-            </td>
-        </tr>
+            <a class="env-card" href="/environment/{{ f.slug }}"
+               style="--img: url('{{ url_for('static', filename='images/' ~ f.card_image) }}')">
 
-        <tr>
-            <td>Temperature</td>
-            <td>
-                Temperature affects plant metabolism, growth rate,
-                and responses to environmental stress.
-            </td>
-        </tr>
+                <span class="env-label">{{ f.title }}</span>
 
-        <tr>
-            <td>Previous Plant Structure</td>
-            <td>
-                Previous plant structure provides information about
-                earlier growth patterns and structural changes.
-            </td>
-        </tr>
+                <span class="env-discover">Discover</span>
 
-    </table>
+            </a>
 
-</div>
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
 
 
 <!-- ============================================================
      GROWTH STAGES
      ============================================================ -->
 
-<div class="stage-section">
+<section class="section section-stages" id="stages">
 
-    <h2>Growth Stages</h2>
+    <div class="container">
 
-    <p class="stage-intro">
-        Choose your plant's stage to see the daily planning
-        recommendation and to record your measurements.
-    </p>
+        <div class="section-head">
 
-    <div class="stage-grid">
+            <h2>Growth Stages</h2>
 
-        {% for s in stages %}
+            <p>Choose your plant's stage to see the daily planning
+               recommendation and to record your measurements.</p>
 
-        <a class="stage-card stage-{{ s.slug }}" href="/stage/{{ s.slug }}">
+        </div>
 
-            <span class="stage-weeks">{{ s.label }}</span>
+        <div class="stage-grid">
 
-            <span class="stage-name">{{ s.name }}</span>
+            {% for s in stages %}
 
-            <span class="stage-blurb">{{ s.blurb }}</span>
+            <a class="stage-arch" href="/stage/{{ s.slug }}"
+               style="--img: url('{{ url_for('static', filename='images/' ~ s.slug ~ '.jpg') }}')">
 
-            <span class="stage-open">Open &rarr;</span>
+                <span class="arch-weeks">{{ s.label }}</span>
 
-        </a>
+                <span class="arch-name">{{ s.name }}</span>
 
-        {% endfor %}
+                <span class="arch-blurb">{{ s.blurb }}</span>
+
+                <span class="arch-open">Open <span aria-hidden="true">&rarr;</span></span>
+
+            </a>
+
+            {% endfor %}
+
+        </div>
 
     </div>
 
-</div>
+</section>
 
-</body>
-</html>
+{% endblock %}

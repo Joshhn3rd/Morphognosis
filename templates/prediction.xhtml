@@ -1,32 +1,20 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+{% extends "base.xhtml" %}
 
-<head>
+{% block title %}Plant Prediction - Morphognosis{% endblock %}
 
-    <meta charset="UTF-8" />
+{% block body_class %}page-gradient{% endblock %}
 
-    <title>Plant Prediction</title>
+{% block content %}
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='css/style.css') }}"
-    />
+<section class="page-hero container">
 
-</head>
+    <h1>Plant Prediction</h1>
 
+    <p>Enter this week's conditions and your plant's previous structure to
+       forecast its next weekly growth.</p>
 
-<body>
+</section>
 
-
-{% include "_header.xhtml" %}
-
-
-
-
-
-<!-- ============================================================
-     MAIN PREDICTION CONTAINER
-     ============================================================ -->
 
 <div class="prediction-container">
 
@@ -168,6 +156,7 @@
         id="preview"
         src="{{ url_for('static', filename='images/preview.jpg') }}"
         alt="Image Preview"
+        onerror="this.style.display='none'"
     />
 
 
@@ -347,16 +336,8 @@
 
 </div>
 
+{% endblock %}
 
-<!-- ============================================================
-     JAVASCRIPT
-     ============================================================ -->
-
-<script
-    src="{{ url_for('static', filename='js/script.js') }}">
-</script>
-
-
-</body>
-
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

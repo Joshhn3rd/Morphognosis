@@ -20,6 +20,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import db as database
+import environment_content as env
 import stage_config as cfg
 
 
@@ -87,6 +88,7 @@ def inject_template_globals():
         "current_user": user,
         "csrf_token": csrf_token(),
         "stages": [cfg.STAGES[s] for s in cfg.STAGE_ORDER],
+        "factors": [env.FACTORS[s] for s in env.ORDER],
     }
 
 
@@ -186,6 +188,24 @@ def logout():
     check_csrf()
     session.clear()
     return redirect(url_for("home"))
+
+
+# ------------------------------------------------------------
+# Environmental factor pages (Sunlight / Temperature / Water)
+# ------------------------------------------------------------
+
+@tracker_bp.route("/environment/<slug>")
+def environment_detail(slug):
+    factor = env.FACTORS.get(slug)
+    if factor is None:
+        abort(404)
+    i = env.ORDER.index(slug)
+    return render_template(
+        "environment_detail.xhtml",
+        factor=factor,
+        prev_factor=env.FACTORS[env.ORDER[i - 1]],
+        next_factor=env.FACTORS[env.ORDER[(i + 1) % len(env.ORDER)]],
+    )
 
 
 # ------------------------------------------------------------

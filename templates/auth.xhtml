@@ -1,21 +1,24 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% if mode == 'signup' %}Create Account{% else %}Sign In{% endif %}</title>
+{% extends "base.xhtml" %}
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
-</head>
+{% block title %}{% if mode == 'signup' %}Create Account{% else %}Sign In{% endif %} - Morphognosis{% endblock %}
 
-<body>
+{% block body_class %}page-gradient{% endblock %}
 
-{% include "_header.xhtml" %}
+{% block content %}
+
+<div class="auth-wrap">
 
 <div class="auth-card">
 
-    <h2>{% if mode == 'signup' %}Create Account{% else %}Sign In{% endif %}</h2>
+    <h2>{% if mode == 'signup' %}Create your account{% else %}Welcome back{% endif %}</h2>
+
+    <p class="auth-sub">
+        {% if mode == 'signup' %}
+        Just a username and a password. No email needed.
+        {% else %}
+        Sign in to record and review your daily measurements.
+        {% endif %}
+    </p>
 
     {% if error %}
     <p class="form-error" role="alert">{{ error }}</p>
@@ -47,7 +50,6 @@
         <p class="form-note">
             Username: 3-30 letters or numbers. Password: at least {{ min_length }} characters.
             <strong>Remember your password. It cannot be recovered.</strong>
-            No email or other personal information is needed.
         </p>
         {% endif %}
 
@@ -67,5 +69,6 @@
 
 </div>
 
-</body>
-</html>
+</div>
+
+{% endblock %}

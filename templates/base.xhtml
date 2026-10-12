@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Morphognosis{% endblock %}</title>
+
+    <link rel="icon" type="image/svg+xml"
+          href="{{ url_for('static', filename='images/logo.svg') }}" />
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}?v=3" />
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+{% include "_header.xhtml" %}
+
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+
+{% include "_footer.xhtml" %}
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

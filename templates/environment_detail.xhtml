@@ -1,0 +1,111 @@
+{% extends "base.xhtml" %}
+
+{% block title %}{{ factor.heading }} - Morphognosis{% endblock %}
+
+{% block body_class %}page-detail{% endblock %}
+
+{% block content %}
+
+<div class="photo-bg"
+     style="background-image: url('{{ url_for('static', filename='images/' ~ factor.background) }}')"></div>
+
+<section class="detail">
+
+    <a class="back-link" href="/#environment">&larr; Back to Home</a>
+
+    <h1 class="detail-title">{{ factor.heading }}</h1>
+
+    <div class="detail-grid">
+
+        <figure class="glass-panel detail-figure">
+            <img src="{{ url_for('static', filename='images/' ~ factor.figure) }}"
+                 alt="{{ factor.figure_alt }}" />
+            {% if factor.figure_credit %}
+            <figcaption>{{ factor.figure_credit }}</figcaption>
+            {% endif %}
+        </figure>
+
+        <div class="detail-text accent-{{ factor.accent }}">
+
+            {% if factor.steps %}
+
+                <h2>{{ factor.intro }}</h2>
+
+                <div class="step-tabs" role="tablist" aria-label="Growth stages">
+                    {% for s in factor.steps %}
+                    <button type="button" class="step-tab" role="tab"
+                            id="tab{{ loop.index0 }}" data-step="{{ loop.index0 }}"
+                            aria-controls="step{{ loop.index0 }}"
+                            aria-selected="{{ 'true' if loop.first else 'false' }}">
+                        {{ s.tab }}
+                    </button>
+                    {% endfor %}
+                </div>
+
+                {% for s in factor.steps %}
+                <div class="step-panel" role="tabpanel" id="step{{ loop.index0 }}"
+                     aria-labelledby="tab{{ loop.index0 }}" {% if not loop.first %}hidden="hidden"{% endif %}>
+
+                    <h3>{{ s.title }}</h3>
+
+                    <p>{{ s.text }}</p>
+
+                    <p class="impact-label">{{ s.impacts_label }}</p>
+
+                    <ul class="impact-list">
+                        {% for label, detail in s.impacts %}
+                        <li><strong>{{ label }}:</strong> {{ detail }}</li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+                {% endfor %}
+
+                <div class="step-next">
+                    <button type="button" class="arrow-btn" id="stepNext"
+                            aria-label="Next stage">&rarr;</button>
+                </div>
+
+            {% elif factor.blocks %}
+
+                {% for b in factor.blocks %}
+                <div class="detail-block">
+                    <h3>{{ b.title }}</h3>
+                    {% if b.sub %}<p class="sub">{{ b.sub }}</p>{% endif %}
+                    <p>{{ b.text }}</p>
+                </div>
+                {% endfor %}
+
+            {% else %}
+
+                {% for p in factor.paragraphs %}
+                <p>{{ p }}</p>
+                {% endfor %}
+
+            {% endif %}
+
+            {% if factor.source %}
+            <p class="source-line">
+                Source: {{ factor.source }}
+                {% if factor.source_url %}
+                <a href="{{ factor.source_url }}" target="_blank" rel="noopener noreferrer">View post</a>
+                {% endif %}
+            </p>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <nav class="detail-pager" aria-label="Other environmental factors">
+        <a class="pager-link" href="/environment/{{ prev_factor.slug }}">&larr; {{ prev_factor.title }}</a>
+        <a class="pager-link" href="/environment/{{ next_factor.slug }}">{{ next_factor.title }} &rarr;</a>
+    </nav>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/site.js') }}"></script>
+{% endblock %}
