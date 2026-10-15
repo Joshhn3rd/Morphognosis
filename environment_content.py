@@ -36,7 +36,7 @@ FACTORS = {
         "heading": "Sunlight Exposure",
         "card_image": "sunlight.jpg",
         "background": "sunlight.jpg",
-        "figure": "sunlight.jpg",
+        "figure": "info-sunlight.jpg",
         "figure_alt": "Eggplant plant in full sun with flowers and two fruits; roots "
                       "take minerals from the soil.",
         "accent": "yellow",
@@ -126,7 +126,7 @@ FACTORS = {
         "heading": "Temperature",
         "card_image": "temperature.jpg",
         "background": "temperature.jpg",
-        "figure": "temperature.jpg",
+        "figure": "info-temperature.jpg",
         "figure_alt": "Eggplant plant in warm sun showing flowers, leaves, stem and roots.",
         "accent": "purple",
         "blocks": [
@@ -172,7 +172,7 @@ FACTORS = {
         "heading": "Water",
         "card_image": "water.jpg",
         "background": "water.jpg",
-        "figure": "water.jpg",
+        "figure": "info-water.jpg",
         "figure_alt": "Eggplant plant with blue arrows showing water moving from the roots "
                       "up through the stem to the leaves.",
         "accent": "none",
