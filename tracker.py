@@ -224,6 +224,7 @@ def stage_page(slug):
         fields=cfg.FIELDS,
         days=range(1, cfg.DAYS_PER_WEEK + 1),
         placeholders=cfg.VALUES_ARE_PLACEHOLDERS,
+        estimates=cfg.VALUES_ARE_ESTIMATES,
     )
 
 
