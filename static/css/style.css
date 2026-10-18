@@ -1675,6 +1675,83 @@ select:focus {
 }
 
 
+/* ---------- guidance for farmers ---------- */
+
+.guidance-card {
+    grid-column: 1 / -1;
+}
+
+.guidance-card[hidden] {
+    display: none;
+}
+
+.guidance-note {
+    margin: 6px 0 18px;
+    color: var(--ink-soft);
+    font-size: 15px;
+}
+
+.guidance-list {
+    display: grid;
+    gap: 12px;
+
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.guide-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+
+    padding: 14px 16px;
+
+    background: var(--lime-soft);
+    border-left: 6px solid var(--green-900);
+    border-radius: 12px;
+}
+
+.guide-item p {
+    margin: 4px 0 0;
+    color: var(--ink);
+}
+
+.guide-badge {
+    flex: 0 0 auto;
+
+    display: grid;
+    place-items: center;
+
+    width: 28px;
+    height: 28px;
+
+    background: var(--green-900);
+    border-radius: 50%;
+
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.guide-watch {
+    background: #fff8d6;
+    border-left-color: #d9a400;
+}
+
+.guide-watch .guide-badge {
+    background: #d9a400;
+}
+
+.guide-act {
+    background: #ffe9e6;
+    border-left-color: #c0392b;
+}
+
+.guide-act .guide-badge {
+    background: #c0392b;
+}
+
+
 /* =========================================================
    PREDICTION HISTORY
 ========================================================= */

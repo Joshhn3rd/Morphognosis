@@ -109,6 +109,10 @@ if (predictionForm) {
             // SHOW PROCESSING
             // ====================================================
 
+            if (window.clearGuidance) {
+                window.clearGuidance();
+            }
+
             setResult(
                 "predictedHeight",
                 "Processing..."
@@ -227,6 +231,18 @@ if (predictionForm) {
                 );
 
 
+                // ====================================================
+                // 5. SHOW GUIDANCE FOR THE FARMER
+                // ====================================================
+
+                if (window.renderGuidance) {
+                    window.renderGuidance(
+                        result,
+                        new FormData(predictionForm)
+                    );
+                }
+
+
                 console.log(
                     "============================================"
                 );
@@ -288,6 +304,10 @@ if (predictionForm) {
                     "cnnBranchDevelopment",
                     "-"
                 );
+
+                if (window.clearGuidance) {
+                    window.clearGuidance();
+                }
 
 
                 alert(

@@ -329,6 +329,28 @@
     </div>
 
 
+    <!-- ========================================================
+         CARD 3
+         GUIDANCE FOR THE FARMER
+         ======================================================== -->
+
+    <div class="result-card guidance-card" id="guidanceCard" hidden="hidden">
+
+        <h3>
+            Guidance for Farmers
+        </h3>
+
+        <p class="guidance-note">
+            Tips based on your inputs, the prediction and the DA Eggplant
+            Production Guide. They are general advice, not a diagnosis. Ask
+            your agricultural technician if you are unsure.
+        </p>
+
+        <ul class="guidance-list" id="guidanceList"></ul>
+
+    </div>
+
+
 </div>
 
 
@@ -339,5 +361,6 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/guidance.js') }}"></script>
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 {% endblock %}
