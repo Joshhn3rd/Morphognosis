@@ -131,6 +131,12 @@ if (predictionForm) {
                 window.clearGuidance();
             }
 
+            const yours = document.getElementById("modelYours");
+
+            if (yours) {
+                yours.hidden = true;
+            }
+
             setResult(
                 "predictedHeight",
                 "Processing..."
@@ -261,6 +267,12 @@ if (predictionForm) {
                 }
 
 
+                showModelValues(
+                    result,
+                    new FormData(predictionForm)
+                );
+
+
                 console.log(
                     "============================================"
                 );
@@ -336,6 +348,50 @@ if (predictionForm) {
 
         }
     );
+
+}
+
+
+// ============================================================
+// SHOW THE USER'S OWN NUMBERS IN THE MODEL
+// ============================================================
+
+function showModelValues(
+    result,
+    form
+) {
+
+    const box = document.getElementById("modelYours");
+    const list = document.getElementById("modelYoursList");
+
+    if (!box || !list) {
+        return;
+    }
+
+    const week = parseInt(form.get("week"), 10);
+
+    const rows = [
+        `n = ${week} (predicting week ${week})`,
+        `H\u2099\u208B\u2081 = ${form.get("prevHeight")} cm, ` +
+            `L\u2099\u208B\u2081 = ${form.get("prevLeaves")}, ` +
+            `B\u2099\u208B\u2081 = ${form.get("prevBranches")}`,
+        `W\u2099 = ${form.get("water")} mL, ` +
+            `T\u2099 = ${form.get("temperature")} \u00B0C, ` +
+            `S\u2099 = ${form.get("sunlight")} hours/day`,
+        `H\u2099 = ${result.predictedHeight} cm, ` +
+            `L\u2099 = ${result.predictedLeaves}, ` +
+            `B\u2099 = ${result.predictedBranches}`
+    ];
+
+    list.textContent = "";
+
+    rows.forEach((text) => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        list.appendChild(li);
+    });
+
+    box.hidden = false;
 
 }
 

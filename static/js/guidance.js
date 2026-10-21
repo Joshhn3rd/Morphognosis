@@ -67,12 +67,12 @@
     }
 
 
-    /* ---------- sunlight (input is hours per week) ---------- */
+    /* ---------- sunlight (input is average hours per day) ---------- */
 
-    function sunlightTip(weeklyHours, stage) {
+    function sunlightTip(weeklyHours, stage)  /* value is hours per day */ {
         if (weeklyHours === null) { return null; }
 
-        var perDay = Math.round(weeklyHours / 7 * 10) / 10;
+        var perDay = Math.round(weeklyHours * 10) / 10;
         var label = perDay + " hours of sun a day on average";
 
         if (stage === "seedling") {

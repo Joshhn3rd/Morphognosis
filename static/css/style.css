@@ -1722,6 +1722,113 @@ select:focus {
 }
 
 
+/* ---------- mathematical model ---------- */
+
+.model-card {
+    margin: 34px 0 26px;
+    padding: 30px;
+
+    background: var(--cream, #fcf8f1);
+    border: 2px solid var(--yellow);
+    border-radius: var(--radius-lg, 24px);
+
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
+}
+
+.model-card h3 {
+    margin: 0 0 8px;
+    color: var(--green-900);
+}
+
+.model-card h4 {
+    margin: 24px 0 10px;
+    color: var(--green-900);
+}
+
+.model-intro,
+.model-note {
+    color: var(--ink-soft);
+}
+
+.formula-box {
+    margin: 18px 0 6px;
+    padding: 22px 18px;
+
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+
+    overflow-x: auto;
+}
+
+.formula-box math {
+    font-size: 26px;
+    min-width: max-content;
+}
+
+.model-cols {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.model-scroll {
+    overflow-x: auto;
+}
+
+.model-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.model-table th,
+.model-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+}
+
+.model-table th {
+    color: var(--green-900);
+    background: var(--lime-soft);
+}
+
+.model-yours {
+    margin-top: 20px;
+    padding: 14px 18px;
+
+    background: var(--lime-soft);
+    border-left: 6px solid var(--green-900);
+    border-radius: 12px;
+}
+
+.model-yours[hidden] {
+    display: none;
+}
+
+.model-yours h4 {
+    margin: 0 0 8px;
+}
+
+.model-yours ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+@media (max-width: 800px) {
+    .model-cols {
+        grid-template-columns: 1fr;
+    }
+
+    .formula-box math {
+        font-size: 20px;
+    }
+}
+
+
 /* ---------- guidance for farmers ---------- */
 
 .guidance-card {

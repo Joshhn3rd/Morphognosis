@@ -91,8 +91,50 @@ def home():
 @app.route("/prediction")
 def prediction():
 
+    # The coefficients shown in "How the prediction is made" are read
+    # from the formula itself, so the page can never drift from the code.
+    model_rows = [
+        {
+            "symbol": "H",
+            "name": "Height",
+            "bias": formula.height_bias,
+            "alpha": formula.height_water_weight,
+            "beta": formula.height_temperature_weight,
+            "gamma": formula.height_sunlight_weight,
+            "scale": formula.height_scale,
+            "note": "cm gained per week"
+        },
+        {
+            "symbol": "L",
+            "name": "Leaves",
+            "bias": formula.leaf_bias,
+            "alpha": formula.leaf_water_weight,
+            "beta": formula.leaf_temperature_weight,
+            "gamma": formula.leaf_sunlight_weight,
+            "scale": formula.leaf_scale,
+            "note": "leaves gained per week (at least 1)"
+        },
+        {
+            "symbol": "B",
+            "name": "Branches",
+            "bias": formula.branch_bias,
+            "alpha": formula.branch_water_weight,
+            "beta": formula.branch_temperature_weight,
+            "gamma": formula.branch_sunlight_weight,
+            "scale": formula.branch_scale,
+            "note": (
+                "branches gained per week, only once the plant is at "
+                f"least {formula.branch_height_threshold:g} cm tall"
+            )
+        }
+    ]
+
     return render_template(
-        "prediction.xhtml"
+        "prediction.xhtml",
+        model_rows=model_rows,
+        ref_sunlight=formula.ref_sunlight,
+        ref_temperature=formula.ref_temperature,
+        ref_water=formula.ref_water
     )
 
 
