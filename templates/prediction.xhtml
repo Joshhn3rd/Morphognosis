@@ -148,24 +148,49 @@
 <div class="upload-card">
 
     <h3>
-        Plant Image
+        Plant Photos (3 views)
     </h3>
 
+    <p class="upload-help">
+        Take three photos of the same plant at the same distance (about
+        1 meter), in good daylight, against a plain background. Keep the
+        whole plant in the frame.
+    </p>
 
-    <img
-        id="preview"
-        src="{{ url_for('static', filename='images/preview.jpg') }}"
-        alt="Image Preview"
-        onerror="this.style.display='none'"
-    />
+    <div class="view-grid">
 
+        {% for key, title, how in [
+            ("Top", "Top view", "Hold the camera directly above the plant, pointing straight down."),
+            ("Front", "Front view", "Stand at plant height and face the plant straight on."),
+            ("Side", "Side view", "Turn 90 degrees from the front view and shoot from the side.")
+        ] %}
 
-    <input
-        type="file"
-        id="plantImage"
-        name="plantImage"
-        accept="image/*"
-    />
+        <div class="view-slot">
+
+            <h4>{{ title }}</h4>
+
+            <p class="view-how">{{ how }}</p>
+
+            <img
+                id="preview{{ key }}"
+                class="view-preview"
+                alt="{{ title }} preview"
+                hidden="hidden"
+            />
+
+            <input
+                type="file"
+                id="plantImage{{ key }}"
+                name="plantImage{{ key }}"
+                accept="image/*"
+                data-view="{{ key }}"
+            />
+
+        </div>
+
+        {% endfor %}
+
+    </div>
 
 </div>
 

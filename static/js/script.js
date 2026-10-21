@@ -1,19 +1,27 @@
-const imageInput = document.getElementById("plantImage");
-const imagePreview = document.getElementById("preview");
 const predictionForm = document.getElementById("predictionForm");
 
+const VIEW_KEYS = ["Top", "Front", "Side"];
+
 
 // ============================================================
-// IMAGE PREVIEW
+// IMAGE PREVIEWS (TOP, FRONT, SIDE)
 // ============================================================
 
-if (imageInput && imagePreview) {
+VIEW_KEYS.forEach((key) => {
 
-    imageInput.addEventListener("change", () => {
+    const input = document.getElementById("plantImage" + key);
+    const preview = document.getElementById("preview" + key);
 
-        const file = imageInput.files[0];
+    if (!input || !preview) {
+        return;
+    }
+
+    input.addEventListener("change", () => {
+
+        const file = input.files[0];
 
         if (!file) {
+            preview.hidden = true;
             return;
         }
 
@@ -21,7 +29,8 @@ if (imageInput && imagePreview) {
 
             alert("Please select a valid image file.");
 
-            imageInput.value = "";
+            input.value = "";
+            preview.hidden = true;
 
             return;
         }
@@ -30,8 +39,8 @@ if (imageInput && imagePreview) {
 
         reader.onload = (event) => {
 
-            imagePreview.src = event.target.result;
-            imagePreview.style.display = "block";
+            preview.src = event.target.result;
+            preview.hidden = false;
 
         };
 
@@ -39,7 +48,7 @@ if (imageInput && imagePreview) {
 
     });
 
-}
+});
 
 
 // ============================================================
@@ -88,16 +97,25 @@ if (predictionForm) {
 
 
             // ====================================================
-            // CHECK IMAGE
+            // CHECK THE THREE PHOTOS
             // ====================================================
 
-            if (
-                !imageInput ||
-                !imageInput.files[0]
-            ) {
+            const missing = VIEW_KEYS.filter((key) => {
+
+                const input = document.getElementById(
+                    "plantImage" + key
+                );
+
+                return !input || !input.files[0];
+
+            });
+
+            if (missing.length) {
 
                 alert(
-                    "Please upload a plant image."
+                    "Please upload all three photos. Missing: " +
+                    missing.map((k) => k.toLowerCase() + " view").join(", ") +
+                    "."
                 );
 
                 return;

@@ -373,6 +373,139 @@ def combine_analysis(
 
 
 # ============================================================
+# 12. THREE-VIEW IMAGE ANALYSIS (TOP, FRONT, SIDE)
+# ============================================================
+#
+# The farmer uploads three photos of the same plant. Each photo is sent
+# to the CNN service on its own, then the three answers are combined:
+# for every category (growth, leaf distribution, branch development)
+# the confidences of the views that chose the same label are added up,
+# and the label with the highest total wins.
+#
+# VIEW_WEIGHTS lets you trust one view more than another for a category.
+# All are 1.0 (equal) because no per-view accuracy has been measured yet.
+
+PLANT_VIEWS = [
+    ("top", "plantImageTop"),
+    ("front", "plantImageFront"),
+    ("side", "plantImageSide"),
+]
+
+VIEW_WEIGHTS = {
+    "growth": {"top": 1.0, "front": 1.0, "side": 1.0},
+    "leaf": {"top": 1.0, "front": 1.0, "side": 1.0},
+    "branch": {"top": 1.0, "front": 1.0, "side": 1.0},
+}
+
+
+def collect_plant_views(files):
+
+    views = []
+
+    for view_name, field in PLANT_VIEWS:
+
+        image = files.get(field)
+
+        if image and image.filename:
+            views.append((view_name, image))
+
+    if not views:
+
+        legacy = files.get("plantImage")
+
+        if legacy and legacy.filename:
+            views.append(("single", legacy))
+
+    return views
+
+
+def analyze_view(view_name, image):
+
+    filename = secure_filename(image.filename)
+
+    if not filename:
+        raise ValueError(f"Invalid image filename ({view_name} view).")
+
+    image.stream.seek(0)
+
+    try:
+        response = requests.post(
+            f"{CNN_SERVICE_URL}/analyze_image",
+            files={
+                "plantImage": (
+                    filename,
+                    image.stream,
+                    image.mimetype or "application/octet-stream"
+                )
+            },
+            timeout=180
+        )
+    except requests.RequestException as exc:
+        raise RuntimeError(
+            f"Could not reach CNN service at {CNN_SERVICE_URL}: {exc}"
+        ) from exc
+
+    try:
+        result = response.json()
+    except ValueError as exc:
+        raise RuntimeError(
+            "CNN service returned a non-JSON response."
+        ) from exc
+
+    if not response.ok:
+        raise RuntimeError(
+            result.get("error")
+            or f"CNN service failed with HTTP {response.status_code} "
+               f"({view_name} view)."
+        )
+
+    result["view"] = view_name
+
+    return result
+
+
+def aggregate_views(view_results):
+
+    categories = [
+        ("growth", "overallGrowth", "overallGrowthConfidence"),
+        ("leaf", "leafDistribution", "leafDistributionConfidence"),
+        ("branch", "branchDevelopment", "branchDevelopmentConfidence"),
+    ]
+
+    combined = {}
+    agree = True
+
+    for key, label_field, conf_field in categories:
+
+        totals = {}
+        weight_sum = 0.0
+
+        for r in view_results:
+
+            weight = VIEW_WEIGHTS[key].get(r["view"], 1.0)
+            label = str(r[label_field]).lower()
+
+            totals[label] = (
+                totals.get(label, 0.0)
+                + weight * float(r[conf_field])
+            )
+
+            weight_sum += weight
+
+        winner = max(totals, key=totals.get)
+
+        combined[label_field] = winner
+        combined[conf_field] = round(totals[winner] / weight_sum, 2)
+
+        if len(totals) > 1:
+            agree = False
+
+    combined["viewsAgree"] = agree
+
+    return combined
+
+
+# ============================================================
 # 13. MAIN PREDICTION ROUTE
 # ============================================================
 
@@ -728,54 +861,24 @@ def predict():
         # I. GET PLANT IMAGE + CALL SEPARATE CNN SERVICE
         # ====================================================
 
-        image = request.files.get("plantImage")
+        # Three required views (top, front, side). A single legacy
+        # "plantImage" upload is still accepted.
+        views = collect_plant_views(request.files)
 
-        if image and image.filename:
-
-            filename = secure_filename(image.filename)
-
-            if not filename:
-                raise ValueError("Invalid image filename.")
+        if views:
 
             print("\n============================================")
-            print("PLANT IMAGE RECEIVED")
-            print("============================================")
-            print("Filename:", filename)
+            print("PLANT IMAGES RECEIVED:", [v[0] for v in views])
             print("CNN service:", CNN_SERVICE_URL)
 
-            # Forward the uploaded image to the independent CNN API.
-            # The main app never imports TensorFlow or loads MobileNetV2.
-            image.stream.seek(0)
+            view_results = []
 
-            try:
-                cnn_response = requests.post(
-                    f"{CNN_SERVICE_URL}/analyze_image",
-                    files={
-                        "plantImage": (
-                            filename,
-                            image.stream,
-                            image.mimetype or "application/octet-stream"
-                        )
-                    },
-                    timeout=180
+            for view_name, image in views:
+                view_results.append(
+                    analyze_view(view_name, image)
                 )
-            except requests.RequestException as exc:
-                raise RuntimeError(
-                    f"Could not reach CNN service at {CNN_SERVICE_URL}: {exc}"
-                ) from exc
 
-            try:
-                cnn_result = cnn_response.json()
-            except ValueError as exc:
-                raise RuntimeError(
-                    "CNN service returned a non-JSON response."
-                ) from exc
-
-            if not cnn_response.ok:
-                raise RuntimeError(
-                    cnn_result.get("error")
-                    or f"CNN service failed with HTTP {cnn_response.status_code}."
-                )
+            cnn_result = aggregate_views(view_results)
 
             combined_result = combine_analysis(
                 numerical_growth=structural_growth,
@@ -802,7 +905,8 @@ def predict():
                 "growthSource": combined_result["growthSource"],
                 "leafSource": combined_result["leafSource"],
                 "branchSource": combined_result["branchSource"],
-                "imageFilename": filename
+                "viewResults": view_results,
+                "viewsAgree": cnn_result["viewsAgree"]
             })
 
         else:

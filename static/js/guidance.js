@@ -272,6 +272,12 @@
         if (t) { items.push(t); }
         if (s) { items.push(s); }
 
+        if (result.viewsAgree === false) {
+            items.push(tip("watch", "Your three photos give different results",
+                "The top, front and side photos do not agree. Retake them at the " +
+                "same distance, in the same light, with the whole plant in the frame."));
+        }
+
         items = items.concat(trendTips(form, result));
         items = items.concat(analysisTips(result, week));
         items.push(weekTip(week));
